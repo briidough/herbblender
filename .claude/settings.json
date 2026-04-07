@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ':*)",
+      "Bash(ls /opt/oracle/instantclient_23_26/*.so*)",
+      "Bash(sudo pacman:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(ldconfig -p)",
+      "Read(//etc/**)"
+    ]
+  }
+}

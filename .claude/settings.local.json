@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//usr/bin/**)",
+      "Read(//home/archB/.nvm/versions/**)",
+      "Read(//home/archB/.var/app/com.vscodium.codium/data/node/**)",
+      "Read(//home/archB/**)",
+      "Read(//usr/local/**)",
+      "Bash(pacman -Q nodejs)",
+      "Bash(export PATH=\"/home/archB/node-v25.9.0-linux-x64/bin:$PATH\")",
+      "Bash(mkdir -p /home/archB/repos/herbblender/backend)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e ':*)"
+    ]
+  }
+}
