@@ -1,0 +1,14 @@
+# Environment / secrets
+.env
+.env.*
+
+# Node
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Angular build output
+frontend/dist/
+
+# OS
+.DS_Store

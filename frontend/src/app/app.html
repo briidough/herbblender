@@ -1,0 +1,67 @@
+<div class="app">
+  <header>
+    <h1>HerbBlender</h1>
+  </header>
+
+  <!-- Panel 1: Search -->
+  <section class="panel panel-search">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Choose Tea — type to filter…"
+      [ngModel]="searchQuery()"
+      (ngModelChange)="searchQuery.set($event)"
+    />
+  </section>
+
+  <!-- Panel 2: Tea list -->
+  <section class="panel panel-list">
+    <div class="tea-list">
+      @for (tea of filteredTeas(); track tea.ID) {
+        <div
+          class="tea-row"
+          [class.selected]="isSelected(tea)"
+          [class.disabled]="!isSelected(tea) && selectedTeas().length >= 3"
+          (click)="toggleTea(tea)"
+        >
+          <div class="tea-name">{{ tea.NAME }}</div>
+          <div class="tea-desc">{{ tea.DESCRIPTION }}</div>
+        </div>
+      } @empty {
+        <p class="empty-msg">No teas match your search.</p>
+      }
+    </div>
+  </section>
+
+  <!-- Panel 3: Blend -->
+  <section class="panel panel-blend">
+    @if (selectedTeas().length === 0) {
+      <p class="empty-msg">Select up to 3 teas above to build your blend.</p>
+    } @else {
+      <div class="picked-teas">
+        @for (tea of selectedTeas(); track tea.ID) {
+          <div class="picked-card">
+            <button class="remove-btn" (click)="removeTea(tea)" title="Remove">&#x2715;</button>
+            <div class="picked-name">{{ tea.NAME }}</div>
+            <div class="picked-oxidation">{{ tea.OXIDATION }} oxidation</div>
+          </div>
+        }
+      </div>
+
+      @if (blend(); as b) {
+        <div class="effects-section">
+          <h3>Effects of your blend</h3>
+          <div class="effects-grid">
+            @for (effect of b.effects; track effect.ID) {
+              <div class="effect-chip" [class]="qualityClass(effect.QUALITY)" [title]="effect.DESCRIPTION">
+                {{ effect.NAME }}
+              </div>
+            } @empty {
+              <p class="empty-msg">No effects recorded for this blend.</p>
+            }
+          </div>
+        </div>
+      }
+    }
+  </section>
+</div>
