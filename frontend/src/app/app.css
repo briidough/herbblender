@@ -4,6 +4,7 @@
   margin: 0 auto;
   padding: 24px 16px;
   display: flex;
+  align-items: center;
   flex-direction: column;
   gap: 24px;
 }
@@ -12,11 +13,86 @@ header h1 {
   margin: 0 0 4px;
   font-size: 2rem;
   color: #3a5a3a;
+  align-items: center;
   letter-spacing: 0.5px;
 }
 
-/* ── Panels ──────────────────────────────────────── */
-.panel {
+/* ── Selected row ────────────────────────────────── */
+.selected-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 64px;
+}
+
+.selected-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #b0c8b0;
+  border-radius: 8px;
+  background: #f5fbf5;
+}
+
+.selected-card-label {
+  font-size: 0.75rem;
+  color: #779977;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.selected-card:hover .selected-card-label {
+  opacity: 1;
+}
+
+.selected-card-name {
+  font-weight: 600;
+  color: #2d4a2d;
+}
+
+.selected-card-remove {
+  background: none;
+  border: none;
+  color: #c0392b;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.selected-card-remove:hover {
+  color: #8b0000;
+}
+
+.add-tea-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #5a9e5a;
+  color: #fff;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.add-tea-btn:hover:not(:disabled) {
+  background: #3a7a3a;
+}
+
+.add-tea-btn:disabled {
+  background: #b0c8b0;
+  cursor: not-allowed;
+}
+
+/* ── Effects section ─────────────────────────────── */
+.effects-section {
   border: 1px solid #d4e2d4;
   border-radius: 10px;
   padding: 20px;
@@ -24,127 +100,6 @@ header h1 {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
-/* ── Panel 1: Search ─────────────────────────────── */
-.search-input {
-  width: 100%;
-  padding: 12px 16px;
-  font-size: 1rem;
-  border: 1px solid #b0c8b0;
-  border-radius: 6px;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.search-input:focus {
-  border-color: #5a9e5a;
-  box-shadow: 0 0 0 3px rgba(90,158,90,0.15);
-}
-
-/* ── Panel 2: Tea list ───────────────────────────── */
-.panel-list {
-  padding: 0;
-  overflow: hidden;
-}
-
-.tea-list {
-  max-height: 360px;
-  overflow-y: auto;
-}
-
-.tea-row {
-  display: grid;
-  grid-template-columns: 180px 1fr;
-  gap: 12px;
-  padding: 14px 20px;
-  cursor: pointer;
-  border-bottom: 1px solid #eef3ee;
-  transition: background 0.15s;
-}
-
-.tea-row:last-child {
-  border-bottom: none;
-}
-
-.tea-row:hover:not(.disabled) {
-  background: #f0f7f0;
-}
-
-.tea-row.selected {
-  background: #ddf0dd;
-  border-left: 4px solid #5a9e5a;
-}
-
-.tea-row.disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.tea-name {
-  font-weight: 600;
-  color: #2d4a2d;
-  align-self: center;
-}
-
-.tea-desc {
-  font-size: 0.88rem;
-  color: #556655;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ── Panel 3: Blend ──────────────────────────────── */
-.picked-teas {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-.picked-card {
-  position: relative;
-  flex: 1 1 180px;
-  max-width: 220px;
-  border: 1px solid #b0c8b0;
-  border-radius: 8px;
-  padding: 14px 14px 12px;
-  background: #f5fbf5;
-}
-
-.remove-btn {
-  position: absolute;
-  top: 6px;
-  right: 8px;
-  background: none;
-  border: none;
-  font-size: 0.8rem;
-  color: #888;
-  cursor: pointer;
-  padding: 2px 4px;
-  line-height: 1;
-}
-
-.remove-btn:hover {
-  color: #c0392b;
-}
-
-.picked-name {
-  font-weight: 700;
-  color: #2d4a2d;
-  margin-top: 4px;
-  font-size: 1rem;
-}
-
-.picked-oxidation {
-  font-size: 0.8rem;
-  color: #779977;
-  margin-top: 4px;
-  text-transform: capitalize;
-}
-
-/* ── Effects ─────────────────────────────────────── */
 .effects-section h3 {
   margin: 0 0 12px;
   font-size: 1rem;
@@ -159,6 +114,7 @@ header h1 {
   gap: 8px;
 }
 
+/* ── Effect chips ────────────────────────────────── */
 .effect-chip {
   padding: 6px 14px;
   border-radius: 20px;
@@ -179,10 +135,186 @@ header h1 {
   border: 1px solid #f0b0b0;
 }
 
+.effect-shared-2 {
+  font-weight: 700;
+}
+
+.effect-shared-3 {
+  font-weight: 700;
+  border: 3px solid
+}
+
 .effect-neutral {
   background: #f0f0e8;
   color: #5a5a3a;
   border: 1px solid #c8c8a0;
+}
+
+/* ── Blend loading spinner ───────────────────────── */
+.blend-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #d4e2d4;
+  border-top-color: #5a9e5a;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 8px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Image placeholders ──────────────────────────── */
+.tea-img-placeholder {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  background: #c8ddc8;
+  border-radius: 6px;
+}
+
+.tea-img-placeholder--large {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  margin: 0 auto 16px;
+}
+
+/* ── Overlay backdrop ────────────────────────────── */
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.overlay-backdrop--detail {
+  z-index: 200;
+}
+
+/* ── Overlay panel ───────────────────────────────── */
+.overlay-panel {
+  background: #fff;
+  border-radius: 12px;
+  width: min(540px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  overflow: hidden;
+}
+
+.overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e0ede0;
+  flex-shrink: 0;
+}
+
+.overlay-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #2d4a2d;
+}
+
+.overlay-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #779977;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.overlay-close:hover {
+  color: #2d4a2d;
+}
+
+/* ── Tea list inside selector overlay ───────────── */
+.overlay-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.overlay-tea-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 20px;
+  border-bottom: 1px solid #eef3ee;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.overlay-tea-row:last-child {
+  border-bottom: none;
+}
+
+.overlay-tea-row:hover:not(.already-selected) {
+  background: #f0f7f0;
+}
+
+.overlay-tea-row.already-selected {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.overlay-tea-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.overlay-tea-name {
+  font-weight: 600;
+  color: #2d4a2d;
+  margin-bottom: 4px;
+}
+
+.overlay-tea-desc {
+  font-size: 0.85rem;
+  color: #556655;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overlay-detail-btn {
+  background: none;
+  border: 1px solid #b0c8b0;
+  border-radius: 4px;
+  padding: 4px 10px;
+  color: #5a9e5a;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1rem;
+  letter-spacing: 2px;
+}
+
+.overlay-detail-btn:hover {
+  background: #eaf4ea;
+}
+
+/* ── Detail overlay body ─────────────────────────── */
+.overlay-detail-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.overlay-full-desc {
+  margin-top: 16px;
+  font-size: 0.95rem;
+  color: #556655;
+  line-height: 1.6;
 }
 
 /* ── Misc ────────────────────────────────────────── */

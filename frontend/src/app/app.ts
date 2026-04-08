@@ -1,11 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { TeaService, Tea, Blend } from './tea.service';
+import { TeaService, Tea, Blend, Effect } from './tea.service';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
@@ -13,16 +12,26 @@ export class App implements OnInit {
   private teaService = inject(TeaService);
 
   allTeas = signal<Tea[]>([]);
-  searchQuery = signal('');
   selectedTeas = signal<Tea[]>([]);
   blend = signal<Blend | null>(null);
 
-  filteredTeas = computed(() => {
-    const q = this.searchQuery().toLowerCase();
-    if (!q) return this.allTeas();
-    return this.allTeas().filter(t =>
-      t.NAME.toLowerCase().includes(q) || t.DESCRIPTION.toLowerCase().includes(q)
-    );
+  showSelectorOverlay = signal(false);
+  showDetailOverlay = signal(false);
+  detailTea = signal<Tea | null>(null);
+  detailEffects = signal<Effect[]>([]);
+  blendLoading = signal(false);
+  detailLoading = signal(false);
+
+  effectCounts = computed(() => {
+    const b = this.blend();
+    if (!b) return new Map<number, number>();
+    const counts = new Map<number, number>();
+    for (const tea of b.teas) {
+      for (const effect of (tea.EFFECTS ?? [])) {
+        counts.set(effect.ID, (counts.get(effect.ID) ?? 0) + 1);
+      }
+    }
+    return counts;
   });
 
   ngOnInit() {
@@ -33,15 +42,22 @@ export class App implements OnInit {
     return this.selectedTeas().some(t => t.ID === tea.ID);
   }
 
-  toggleTea(tea: Tea) {
+  openSelectorOverlay() {
+    if (this.selectedTeas().length >= 3) return;
+    this.showSelectorOverlay.set(true);
+  }
+
+  closeSelectorOverlay() {
+    this.showSelectorOverlay.set(false);
+    this.closeDetailOverlay();
+  }
+
+  addTea(tea: Tea) {
     const current = this.selectedTeas();
-    if (this.isSelected(tea)) {
-      this.selectedTeas.set(current.filter(t => t.ID !== tea.ID));
-    } else {
-      if (current.length >= 3) return;
-      this.selectedTeas.set([...current, tea]);
-    }
+    if (current.length >= 3 || this.isSelected(tea)) return;
+    this.selectedTeas.set([...current, tea]);
     this.updateBlend();
+    this.closeSelectorOverlay();
   }
 
   removeTea(tea: Tea) {
@@ -49,13 +65,55 @@ export class App implements OnInit {
     this.updateBlend();
   }
 
+  openDetailOverlay(tea: Tea, event: MouseEvent) {
+    event.stopPropagation();
+    this.detailTea.set(tea);
+    this.detailEffects.set([]);
+    this.detailLoading.set(true);
+    this.showDetailOverlay.set(true);
+    this.teaService.getBlend([tea.ID]).subscribe(blend => {
+      this.detailEffects.set(blend.effects);
+      this.detailLoading.set(false);
+    });
+  }
+
+  closeDetailOverlay() {
+    this.showDetailOverlay.set(false);
+    this.detailTea.set(null);
+    this.detailEffects.set([]);
+  }
+
+  onSelectorBackdropClick(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('overlay-backdrop')) {
+      this.closeSelectorOverlay();
+    }
+  }
+
+  onDetailBackdropClick(event: MouseEvent) {
+    if ((event.target as HTMLElement).classList.contains('overlay-backdrop')) {
+      this.closeDetailOverlay();
+    }
+  }
+
   private updateBlend() {
     const ids = this.selectedTeas().map(t => t.ID);
     if (ids.length === 0) {
       this.blend.set(null);
+      this.blendLoading.set(false);
       return;
     }
-    this.teaService.getBlend(ids).subscribe(blend => this.blend.set(blend));
+    this.blendLoading.set(true);
+    this.teaService.getBlend(ids).subscribe(blend => {
+      this.blend.set(blend);
+      this.blendLoading.set(false);
+    });
+  }
+
+  sharedClass(effectId: number): string {
+    const count = this.effectCounts().get(effectId) ?? 0;
+    if (count >= 3) return 'effect-shared-3';
+    if (count >= 2) return 'effect-shared-2';
+    return '';
   }
 
   qualityClass(quality: string): string {

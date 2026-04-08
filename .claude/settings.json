@@ -6,7 +6,20 @@
       "Bash(sudo pacman:*)",
       "Bash(sudo apt-get:*)",
       "Bash(ldconfig -p)",
-      "Read(//etc/**)"
+      "Read(//etc/**)",
+      "Read(//opt/**)",
+      "Read(//opt/oracle/**)",
+      "Bash(pacman -Si libaio)",
+      "Bash(pacman -Ss libaio)",
+      "Bash(pacman -Q)",
+      "Bash(yay -Ss libaio)",
+      "Bash(pacman -S libaio --noconfirm)",
+      "Bash(ng version:*)",
+      "Bash(ng new:*)",
+      "Bash(ng build:*)",
+      "Bash(ng serve:*)",
+      "Bash(curl -s http://localhost:4200)",
+      "Bash(/home/archB/.var/app/com.vscodium.codium/data/node/bin/node --version)"
     ]
   }
 }

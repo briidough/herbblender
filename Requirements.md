@@ -27,4 +27,4 @@ tea
     effects array of strings    
 
 Wireframe
-3 panels can be found in herbBlender.drawio
+tea_picker.drawio.xml
