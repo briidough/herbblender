@@ -5,10 +5,14 @@
 
   <section class="selected-row">
     @for (tea of selectedTeas(); track tea.ID; let i = $index) {
-      <div class="selected-card">
-        <span class="selected-card-label">Tea {{ i + 1 }}</span>
-        <span class="selected-card-name">{{ tea.NAME }}</span>
-        <button class="selected-card-remove" (click)="removeTea(tea)" title="Remove">&#x2715;</button>
+      <div class="selected-card" (click)="openDetailOverlay(tea, $event)">
+        <div class="selected-card-top">
+          <span class="selected-card-name">{{ tea.NAME }}</span>
+          <button class="selected-card-remove" (click)="removeTea(tea); $event.stopPropagation()" title="Remove">&#x2715;</button>
+        </div>
+        @if (tea.IMAGE_ID) {
+          <img class="selected-card-img" [src]="'/api/images/' + tea.IMAGE_ID" alt="{{ tea.NAME }}" />
+        }
       </div>
     }
     <button
