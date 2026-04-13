@@ -1,0 +1,10 @@
+{
+  "name": "herbblender-manager",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.0"
+  }
+}

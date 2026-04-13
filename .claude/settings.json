@@ -19,7 +19,8 @@
       "Bash(ng build:*)",
       "Bash(ng serve:*)",
       "Bash(curl -s http://localhost:4200)",
-      "Bash(/home/archB/.var/app/com.vscodium.codium/data/node/bin/node --version)"
+      "Bash(/home/archB/.var/app/com.vscodium.codium/data/node/bin/node --version)",
+      "Bash(chmod +x /home/archB/repos/herbblender/start-manager.sh)"
     ]
   }
 }
