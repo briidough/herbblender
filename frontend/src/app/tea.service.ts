@@ -15,6 +15,7 @@ export interface Tea {
   DESCRIPTION: string;
   HERB_ID: number;
   OXIDATION: string;
+  IMAGE_ID?: number | null;
   EFFECTS?: Effect[];
 }
 

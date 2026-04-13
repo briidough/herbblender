@@ -71,7 +71,22 @@ async function deleteHerb(id) {
 // ── Teas ─────────────────────────────────────────────────────────────────────
 
 async function getTeas() {
-  return query(`SELECT id, name, description, herb_id, oxidation FROM to_tea`);
+  return query(
+    `SELECT t.id,
+            t.name,
+            t.description,
+            t.herb_id,
+            t.oxidation,
+            img.min_image_id AS image_id
+     FROM   to_tea t
+     LEFT JOIN (
+         SELECT it.tea_id,
+                MIN(i.id) AS min_image_id
+         FROM   to_images_tea it
+         JOIN   to_images i ON i.id = it.image_id
+         GROUP BY it.tea_id
+     ) img ON img.tea_id = t.id`
+  );
 }
 
 async function getTeaById(id) {

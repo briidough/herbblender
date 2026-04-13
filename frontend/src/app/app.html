@@ -49,7 +49,11 @@
       <div class="overlay-list">
         @for (tea of allTeas(); track tea.ID) {
           <div class="overlay-tea-row" [class.already-selected]="isSelected(tea)" (click)="addTea(tea)">
-            <div class="tea-img-placeholder"></div>
+            @if (tea.IMAGE_ID) {
+              <img class="tea-img" [src]="'/api/images/' + tea.IMAGE_ID" alt="{{ tea.NAME }}" />
+            } @else {
+              <div class="tea-img-placeholder"></div>
+            }
             <div class="overlay-tea-info">
               <div class="overlay-tea-name">{{ tea.NAME }}</div>
               <div class="overlay-tea-desc">{{ tea.DESCRIPTION | slice:0:200 }}</div>
