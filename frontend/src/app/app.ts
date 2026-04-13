@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TeaService, Tea, Blend, Effect } from './tea.service';
+import { TeaService, Tea, Blend, Effect, Herb } from './tea.service';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +19,7 @@ export class App implements OnInit {
   showDetailOverlay = signal(false);
   detailTea = signal<Tea | null>(null);
   detailEffects = signal<Effect[]>([]);
+  detailHerb = signal<Herb | null>(null);
   blendLoading = signal(false);
   detailLoading = signal(false);
 
@@ -69,11 +70,15 @@ export class App implements OnInit {
     event.stopPropagation();
     this.detailTea.set(tea);
     this.detailEffects.set([]);
+    this.detailHerb.set(null);
     this.detailLoading.set(true);
     this.showDetailOverlay.set(true);
     this.teaService.getBlend([tea.ID]).subscribe(blend => {
       this.detailEffects.set(blend.effects);
       this.detailLoading.set(false);
+    });
+    this.teaService.getTeaHerb(tea.ID).subscribe(herb => {
+      this.detailHerb.set(herb);
     });
   }
 
@@ -81,6 +86,7 @@ export class App implements OnInit {
     this.showDetailOverlay.set(false);
     this.detailTea.set(null);
     this.detailEffects.set([]);
+    this.detailHerb.set(null);
   }
 
   onSelectorBackdropClick(event: MouseEvent) {

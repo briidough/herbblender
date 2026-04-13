@@ -116,6 +116,15 @@ app.get('/api/teas/:id/effects', async (req, res) => {
   }
 });
 
+app.get('/api/teas/:id/herb', async (req, res) => {
+  try {
+    const herb = await dal.getTeaHerb(req.params.id);
+    res.json(herb);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/teas/:id', async (req, res) => {
   try {
     const tea = await dal.getTeaById(req.params.id);

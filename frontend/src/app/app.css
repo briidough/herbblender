@@ -189,6 +189,57 @@ header h1 {
   object-fit: cover;
 }
 
+.tea-img--large {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  margin: 0 auto 16px;
+  object-fit: cover;
+  display: block;
+}
+
+.herb-info-section {
+  margin-top: 20px;
+  border-top: 1px solid #e0e8e0;
+  padding-top: 16px;
+}
+
+.herb-info-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5a7a5a;
+  margin: 0 0 8px;
+}
+
+.herb-info-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.herb-info-classification {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 12px;
+}
+
+.herb-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 12px;
+}
+
+.herb-info-desc {
+  font-size: 14px;
+  color: #444;
+  margin: 0;
+}
+
 /* ── Overlay backdrop ────────────────────────────── */
 .overlay-backdrop {
   position: fixed;

@@ -209,6 +209,40 @@ async function getBlend(teaIds) {
   return { teas: found, effects };
 }
 
+// ── Tea Herb (via sproc) ──────────────────────────────────────────────────────
+
+async function getTeaHerb(teaId) {
+  const result = await execute(
+    `BEGIN SP_GET_TEA_HERB(:tea_id, :herb_name, :herb_genus, :herb_species, :herb_description, :herb_othernames); END;`,
+    {
+      tea_id:           { val: Number(teaId), dir: oracledb.BIND_IN,  type: oracledb.NUMBER },
+      herb_name:        { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 200 },
+      herb_genus:       { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 200 },
+      herb_species:     { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 200 },
+      herb_description: { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 4000 },
+      herb_othernames:  { dir: oracledb.BIND_OUT, type: oracledb.STRING, maxSize: 500 }
+    }
+  );
+  const b = result.outBinds;
+
+  const imgRows = await query(
+    `SELECT MIN(i.id) AS image_id
+     FROM to_images i
+     JOIN to_images_herb ih ON ih.image_id = i.id
+     WHERE ih.herb_id = (SELECT herb_id FROM to_tea WHERE id = :teaId)`,
+    [Number(teaId)]
+  );
+
+  return {
+    NAME:        b.herb_name,
+    GENUS:       b.herb_genus,
+    SPECIES:     b.herb_species,
+    DESCRIPTION: b.herb_description,
+    OTHER_NAMES: b.herb_othernames,
+    IMAGE_ID:    imgRows[0]?.IMAGE_ID ?? null
+  };
+}
+
 // ── Images ────────────────────────────────────────────────────────────────────
 
 async function getImagesForHerb(herbId) {
@@ -294,6 +328,7 @@ module.exports = {
   addTea, updateTea, deleteTea,
   linkEffectToTea, unlinkEffectFromTea,
   getEffectsForTea,
+  getTeaHerb,
   getImagesForHerb, getImagesForTea, getImageBlob,
   addImageToHerb, addImageToTea, deleteHerbImage, deleteTeaImage,
 };

@@ -77,7 +77,11 @@
         <button class="overlay-close" (click)="closeDetailOverlay()">&#x2715;</button>
       </div>
       <div class="overlay-detail-body">
-        <div class="tea-img-placeholder tea-img-placeholder--large"></div>
+        @if (detailTea()?.IMAGE_ID) {
+          <img class="tea-img tea-img--large" [src]="'/api/images/' + detailTea()!.IMAGE_ID" alt="{{ detailTea()?.NAME }}" />
+        } @else {
+          <div class="tea-img-placeholder tea-img-placeholder--large"></div>
+        }
         @if (detailLoading()) {
           <p class="empty-msg">Loading effects…</p>
         } @else {
@@ -90,6 +94,17 @@
           </div>
         }
         <p class="overlay-full-desc">{{ detailTea()?.DESCRIPTION }}</p>
+        @if (detailHerb(); as herb) {
+          <div class="herb-info-section">
+            <h3 class="herb-info-title">Herb Info</h3>
+            <p class="herb-info-name">{{ herb.NAME }}</p>
+            <p class="herb-info-classification"><em>{{ herb.GENUS }} {{ herb.SPECIES }}</em></p>
+            @if (herb.IMAGE_ID) {
+              <img class="herb-img" [src]="'/api/images/' + herb.IMAGE_ID" alt="{{ herb.NAME }}" />
+            }
+            <p class="herb-info-desc">{{ herb.DESCRIPTION }}</p>
+          </div>
+        }
       </div>
     </div>
   </div>

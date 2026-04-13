@@ -24,6 +24,15 @@ export interface Blend {
   effects: Effect[];
 }
 
+export interface Herb {
+  NAME: string;
+  GENUS: string;
+  SPECIES: string;
+  DESCRIPTION: string;
+  OTHER_NAMES: string;
+  IMAGE_ID?: number | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TeaService {
   private http = inject(HttpClient);
@@ -34,5 +43,9 @@ export class TeaService {
 
   getBlend(ids: number[]): Observable<Blend> {
     return this.http.get<Blend>(`/api/blend?ids=${ids.join(',')}`);
+  }
+
+  getTeaHerb(teaId: number): Observable<Herb> {
+    return this.http.get<Herb>(`/api/teas/${teaId}/herb`);
   }
 }
