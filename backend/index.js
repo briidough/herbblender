@@ -6,7 +6,7 @@ const dal = require('./dal');
 
 const app = express();
 app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, '..', 'images')));
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // ── Herbs (read) ──────────────────────────────────────────────────────────────
 
