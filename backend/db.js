@@ -1,16 +1,16 @@
 require('dotenv').config();
-const oracledb = require('oracledb');
+const { MongoClient } = require('mongodb');
 
-oracledb.initOracleClient({ libDir: '/opt/oracle/instantclient_23_26' });
+const uri = `mongodb+srv://briidough_db_user:${process.env.DB_PASSWORD}@clusterherbs.q9vwrrs.mongodb.net/?appName=ClusterHerbs`;
+const client = new MongoClient(uri);
 
-const dbConfig = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  connectString: process.env.DB_CONNECT_STRING,
-};
-
-async function getConnection() {
-  return await oracledb.getConnection(dbConfig);
+async function connect() {
+  await client.connect();
+  console.log('Connected to MongoDB');
 }
 
-module.exports = { getConnection };
+function db() {
+  return client.db('tea_blender');
+}
+
+module.exports = { connect, db };
