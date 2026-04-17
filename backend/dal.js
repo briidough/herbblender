@@ -3,7 +3,7 @@ const { db } = require('./db');
 const fs = require('fs');
 const path = require('path');
 
-const IMAGES_DIR = path.join(__dirname, '..', 'images');
+const IMAGES_DIR = path.join(__dirname, 'images');
 
 function slugify(name) {
   return name.toLowerCase().replace(/\s+/g, '');
