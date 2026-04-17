@@ -1,12 +1,12 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
-const multer = require('multer');
+const { connect } = require('./db');
 const dal = require('./dal');
 
 const app = express();
 app.use(express.json());
-
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+app.use('/images', express.static(path.join(__dirname, '..', 'images')));
 
 // ── Herbs (read) ──────────────────────────────────────────────────────────────
 
@@ -33,8 +33,8 @@ app.get('/api/herbs/:id', async (req, res) => {
 
 app.post('/api/herbs', async (req, res) => {
   try {
-    const { name, genus, species, description, other_names } = req.body;
-    const id = await dal.addHerb({ name, genus, species, description, other_names });
+    const { name, genus, species, family, description, nativeRange } = req.body;
+    const id = await dal.addHerb({ name, genus, species, family, description, nativeRange });
     res.status(201).json({ id });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -43,8 +43,8 @@ app.post('/api/herbs', async (req, res) => {
 
 app.put('/api/herbs/:id', async (req, res) => {
   try {
-    const { name, genus, species, description, other_names } = req.body;
-    await dal.updateHerb(req.params.id, { name, genus, species, description, other_names });
+    const { name, genus, species, family, description, nativeRange } = req.body;
+    await dal.updateHerb(req.params.id, { name, genus, species, family, description, nativeRange });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -54,42 +54,6 @@ app.put('/api/herbs/:id', async (req, res) => {
 app.delete('/api/herbs/:id', async (req, res) => {
   try {
     await dal.deleteHerb(req.params.id);
-    res.json({ ok: true });
-  } catch (err) {
-    if (err.errorNum === 2292) {
-      return res.status(409).json({ error: 'Cannot delete herb: teas are still linked to it.' });
-    }
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── Herb images ───────────────────────────────────────────────────────────────
-
-app.get('/api/herbs/:id/images', async (req, res) => {
-  try {
-    const images = await dal.getImagesForHerb(req.params.id);
-    res.json(images);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/herbs/:id/images', upload.single('image'), async (req, res) => {
-  try {
-    const id = await dal.addImageToHerb(req.params.id, {
-      buffer: req.file.buffer,
-      imageExt: req.file.mimetype,
-      imageName: req.file.originalname,
-    });
-    res.status(201).json({ id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/herbs/:id/images/:imageId', async (req, res) => {
-  try {
-    await dal.deleteHerbImage(req.params.id, req.params.imageId);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -116,10 +80,11 @@ app.get('/api/teas/:id/effects', async (req, res) => {
   }
 });
 
-app.get('/api/teas/:id/herb', async (req, res) => {
+app.get('/api/teas/:id/plant', async (req, res) => {
   try {
-    const herb = await dal.getTeaHerb(req.params.id);
-    res.json(herb);
+    const plant = await dal.getTeaPlant(req.params.id);
+    if (!plant) return res.status(404).json({ error: 'Plant not found' });
+    res.json(plant);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -139,8 +104,8 @@ app.get('/api/teas/:id', async (req, res) => {
 
 app.post('/api/teas', async (req, res) => {
   try {
-    const { name, description, herb_id, oxidation } = req.body;
-    const id = await dal.addTea({ name, description, herb_id, oxidation });
+    const { name, description, genus, species, family, oxidation, fermentation } = req.body;
+    const id = await dal.addTea({ name, description, genus, species, family, oxidation, fermentation });
     res.status(201).json({ id });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -149,8 +114,8 @@ app.post('/api/teas', async (req, res) => {
 
 app.put('/api/teas/:id', async (req, res) => {
   try {
-    const { name, description, herb_id, oxidation } = req.body;
-    await dal.updateTea(req.params.id, { name, description, herb_id, oxidation });
+    const { name, description, genus, species, family, oxidation, fermentation } = req.body;
+    await dal.updateTea(req.params.id, { name, description, genus, species, family, oxidation, fermentation });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -170,52 +135,16 @@ app.delete('/api/teas/:id', async (req, res) => {
 
 app.post('/api/teas/:id/effects', async (req, res) => {
   try {
-    await dal.linkEffectToTea(req.params.id, req.body.effectId);
-    res.json({ ok: true });
-  } catch (err) {
-    if (err.errorNum === 1) {
-      return res.status(409).json({ error: 'Effect is already linked to this tea.' });
-    }
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/teas/:id/effects/:effectId', async (req, res) => {
-  try {
-    await dal.unlinkEffectFromTea(req.params.id, req.params.effectId);
+    await dal.linkEffectToTea(req.params.id, req.body.effectName);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── Tea images ────────────────────────────────────────────────────────────────
-
-app.get('/api/teas/:id/images', async (req, res) => {
+app.delete('/api/teas/:id/effects/:effectName', async (req, res) => {
   try {
-    const images = await dal.getImagesForTea(req.params.id);
-    res.json(images);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post('/api/teas/:id/images', upload.single('image'), async (req, res) => {
-  try {
-    const id = await dal.addImageToTea(req.params.id, {
-      buffer: req.file.buffer,
-      imageExt: req.file.mimetype,
-      imageName: req.file.originalname,
-    });
-    res.status(201).json({ id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/teas/:id/images/:imageId', async (req, res) => {
-  try {
-    await dal.deleteTeaImage(req.params.id, req.params.imageId);
+    await dal.unlinkEffectFromTea(req.params.id, req.params.effectName);
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -226,8 +155,8 @@ app.delete('/api/teas/:id/images/:imageId', async (req, res) => {
 
 app.get('/api/blend', async (req, res) => {
   try {
-    const ids = (req.query.ids || '').split(',').map(Number).filter(Boolean).slice(0, 3);
-    if (ids.length === 0) return res.status(400).json({ error: 'Provide up to 3 tea IDs via ?ids=1,2,3' });
+    const ids = (req.query.ids || '').split(',').filter(Boolean).slice(0, 3);
+    if (ids.length === 0) return res.status(400).json({ error: 'Provide up to 3 tea IDs via ?ids=id1,id2,id3' });
     const blend = await dal.getBlend(ids);
     res.json(blend);
   } catch (err) {
@@ -281,25 +210,16 @@ app.delete('/api/effects/:id', async (req, res) => {
     await dal.deleteEffect(req.params.id);
     res.json({ ok: true });
   } catch (err) {
-    if (err.errorNum === 2292) {
-      return res.status(409).json({ error: 'Cannot delete effect: it is still linked to one or more teas.' });
-    }
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── Images (serve blob) ───────────────────────────────────────────────────────
-
-app.get('/api/images/:id', async (req, res) => {
-  try {
-    const image = await dal.getImageBlob(req.params.id);
-    if (!image) return res.status(404).json({ error: 'Image not found' });
-    res.setHeader('Content-Type', image.IMAGE_EXT);
-    res.send(image.IMAGE_BLOB);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// ── Start ─────────────────────────────────────────────────────────────────────
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`HerbBlender backend running on port ${PORT}`));
+connect().then(() => {
+  app.listen(PORT, '0.0.0.0', () => console.log(`HerbBlender backend running on port ${PORT}`));
+}).catch(err => {
+  console.error('Failed to connect to MongoDB:', err.message);
+  process.exit(1);
+});

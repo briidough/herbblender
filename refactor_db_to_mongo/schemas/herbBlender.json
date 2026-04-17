@@ -1,0 +1,226 @@
+teas
+[
+{
+	"name": "Black Tea",
+	"family": "Theaceae",
+	"genus": "Camellia",
+	"species": "sinensis",
+	"oxidation": "Full",
+	"fermentation": "None",
+	"effects": ["Alertness","Anti-inflammatory","Antioxidant"],
+	"alkaloids": ["Caffeine"],
+	"description": "A type of tea that is more oxidized than oolong, yellow, white, and green teas. Black tea is generally stronger in flavour than other teas. All five types are made from leaves of the shrub (or small tree) Camellia sinensis, though Camellia taliensis is also rarely used."
+},
+{
+	"name": "Green Tea",
+	"family": "Theaceae",
+	"genus": "Camellia",
+	"species": "sinensis",
+	"oxidation": "None",
+	"fermentation": "None",
+	"effects": ["Anti-inflammatory","Antioxidant","Boost Metabolism","Reduce Cholesterol"],
+	"alkaloids": ["Caffeine"],
+	"description": "A type of tea made from the leaves and buds of the Camellia sinensis that have not undergone the withering and oxidation process that creates oolong teas and black teas. Green tea originated in China in the late 1st millennium BC, and since then its production and manufacture has spread to other countries in East Asia."
+},
+{
+	"name": "Oolong Tea",
+	"family": "Theaceae",
+	"genus": "Camellia",
+	"species": "sinensis",
+	"oxidation": "Partial",
+	"fermentation": "None",
+	"effects": ["Alertness","Antioxidant","Lower Blood Pressure"],
+	"alkaloids": ["Caffeine"],
+	"description": "A traditional semi-oxidized Chinese tea produced through a process that includes withering the leaves under strong sun and allowing some oxidation to occur before curling and twisting. Most oolong teas, especially those of fine quality, involve unique tea plant cultivars that are exclusively used for particular varieties. The degree of oxidation, which is controlled by the length of time between picking and final drying, can range from 8% to 85% depending on the variety and production style. Oolong is especially popular in southeastern China and among ethnic Chinese in Southeast Asia, as is the Fujian preparation process known as the gongfu tea ceremony."
+},
+{
+	"name": "Rooiboos",
+	"family": "Fabaceae",
+	"genus": "Aspalathus",
+	"species": "linearis",
+	"oxidation": "Partial",
+	"fermentation": "None",
+	"effects": ["Antioxidant","Lower Blood Pressure","Anti-inflammatory"],
+	"alkaloids": [],
+	"description": "A naturally caffeine-free herbal tea from South Africa with a sweet, earthy, and slightly nutty flavor, often described as a smooth, non-bitter alternative to black tea. Rich in antioxidants like aspalathin, it offers potential heart health and blood sugar benefits. It is traditionally brewed with boiling water for 5-7 minutes, often enjoyed with milk, sugar, or lemon."
+},
+{
+	"name": "Green Rooiboos",
+	"family": "Fabaceae",
+	"genus": "Aspalathus",
+	"species": "linearis",
+	"oxidation": "None",
+	"fermentation": "None",
+	"effects": ["Antioxidant","Lower Blood Pressure","Anti-inflammatory"],
+	"alkaloids": [],
+	"description": "An unoxidized, unfermented herbal tea from South Africa's Aspalathus linearis shrub, offering a light, grassy, and slightly sweet flavor. Unlike red rooibos, it is processed without heat, resulting in higher antioxidant levels and a, more delicate taste. It is naturally caffeine-free and creates a light, golden-orange brew, often preferred for its fresh taste and potential health benefits."
+},
+{
+	"name": "Hibiscus",
+	"family": "Malvaceae",
+	"genus": "Hibiscus",
+	"species": "sabdariffa",
+	"oxidation": "None",
+	"fermentation": "None",
+	"effects": ["Antioxidant","Lower Blood Pressure","Anti-inflammatory","Boost Metabolism"],
+	"alkaloids": [],
+	"description": "An unoxidized, unfermented herbal tea from South Africa's Aspalathus linearis shrub, offering a light, grassy, and slightly sweet flavor. Unlike red rooibos, it is processed without heat, resulting in higher antioxidant levels and a, more delicate taste. It is naturally caffeine-free and creates a light, golden-orange brew, often preferred for its fresh taste and potential health benefits."
+},
+{
+	"name": "Guayusa",
+	"family": "Aquifoliaceae",
+	"genus": "Ilex",
+	"species": "guayusa",
+	"oxidation": "None",
+	"fermentation": "None",
+	"effects": ["Alertness","Energized","Anti-inflammatory","Boost Metabolism"],
+	"alkaloids": ["Caffine","Theobromine","L-theanine"],
+	"description": "Leaves are used to make an infusion, especially by the peoples of the Amazon basin, particularly in Ecuador, Peru and Colombia. After harvest, leaves are dried, which allows flavor to develop. In the three aforementioned countries, guayusa is also used in the preparation of artisanal alcoholic drinks."
+},
+{
+	"name": "Yerba Mate",
+	"family": "Aquifoliaceae",
+	"genus": "Ilex",
+	"species": "paraguariensis",
+	"oxidation": "None",
+	"fermentation": "None",
+	"effects": ["Alertness","Energized","Anti-inflammatory","Boost Metabolism","Jittery"],
+	"alkaloids": ["Caffine","Theobromine","Theophylline"],
+	"description": "A traditional Argentine, Paraguayan, Uruguayan and Brazilian caffeine-rich infused herbal drink. It is made by soaking dried leaves in hot water and is traditionally served with a metal straw (bombilla) in a container typically made from a calabash gourd (also called the mate), from water-resistant hardwoods such as Lapacho or Palo Santo, and also made from a cattle horn (guampa) in some areas. A very similar preparation, known as mate cocido, removes some of the plant material and sometimes comes in tea bags. Today, mate is also sold commercially in tea bags and as bottled iced tea."
+}
+]
+----------------------------------------------------------------
+
+plants
+[
+{
+	"name": "Tea",
+	"family": "Theaceae",
+	"genus": "Camellia",
+	"species": "sinensis",
+	"description": "A species of evergreen shrub or small tree in the flowering plant family Theaceae. Its leaves, leaf buds, and stems are used to produce tea. Common names include tea plant, tea shrub, and tea tree (unrelated to Melaleuca alternifolia, the source of tea tree oil, or the genus Leptospermum commonly called tea tree).",
+	"nativeRange": ["Myanmar"]
+},
+{
+	"name": "Rooiboos",
+	"family": "Fabaceae",
+	"genus": "Aspalathus",
+	"species": "linearis",
+	"description": "A broom-like member of the plant family Fabaceae that grows in South Africa's Fynbos biome. The leaves are used to make a caffeine-free herbal infusion that has been popular in Southern Africa for generations. Since the 2000s, rooibos has gained popularity internationally, with an earthy flavour and aroma that is similar to those of yerba mate or tobacco.",
+	"nativeRange": ["Africa"]
+},
+{
+	"name": "Roselle",
+	"family": "Malvaceae",
+	"genus": "Hibiscus",
+	"species": "sabdariffa",
+	"description": "A species of flowering plant in the genus Hibiscus that is native to Africa, most likely West Africa. In the 16th and early 17th centuries it was spread to Asia and the West Indies, where it has since become naturalized in many places. The stems are used for the production of bast fibre and the dried cranberry-tasting calyces are commonly steeped to make a popular infusion.",
+	"nativeRange": ["Africa"]
+},
+{
+	"name": "Yerba Mate",
+	"family": "Aquifoliaceae",
+	"genus": "Ilex",
+	"species": "paraguariensis",
+	"description": "A plant species of the holly genus native to South America. It was named by the French botanist Augustin Saint-Hilaire. The leaves of the plant can be steeped in hot water to make a beverage known as mate. Brewed cold, it is used to make terere. Both the plant and the beverage contain caffeine.",
+	"nativeRange": ["South America"]
+},
+{
+	"name": "Guayusa",
+	"family": "Aquifoliaceae",
+	"genus": "Ilex",
+	"species": "guayusa",
+	"description": "A species of tree in the holly family, Aquifoliaceae. It is native to the Amazon rainforest. One of four known caffeinated holly trees, the leaves of the guayusa tree are harvested fresh and brewed like a tea for their stimulative effects.",
+	"nativeRange": ["Paraguay"]
+}
+]
+
+----------------------------------------------------------------
+
+effects
+[
+{
+	"name": "Alertness",
+	"quality": "Positive",
+	"description": "Eyes focus right quick!"
+},
+{
+	"name": "Anti-inflammatory",
+	"quality": "Positive",
+	"description": "Reduce inflamation, heart health and arthritis"
+},
+{
+	"name": "Antioxidant",
+	"quality": "Positive",
+	"description": "Cancer fighting goodness"
+},
+{
+	"name": "Boost Metabolism",
+	"quality": "Positive",
+	"description": "Keeps body burning calories"
+},
+{
+	"name": "Reduce Cholesterol",
+	"quality": "Positive",
+	"description": "Lower LDL (the bad cholesterol)"
+},
+{
+	"name": "Lower Blood Pressure",
+	"quality": "Positive",
+	"description": "Heart longevity through heart health!"
+},
+{
+	"name": "Jittery",
+	"quality": "Negative",
+	"description": "Zippy fingers and toes"
+},
+{
+	"name": "Energized",
+	"quality": "Neutral",
+	"description": "If one wants engery, it's nice. Else, meh"
+},
+{
+	"name": "Stimulant",
+	"quality": "Neutral",
+	"description": "Get that CNS in 1st gear"
+},
+{
+	"name": "Adenosine Inhibition",
+	"quality": "Neutral",
+	"description": "Turn off the sleepies"
+},
+{
+	"name": "Relaxation",
+	"quality": "Positive",
+	"description": "Chill bruh"
+}
+]
+----------------------------------------------------------------
+
+alkaloids
+[
+{
+	"name": "Caffine",
+	"effects": ["Stimulant"],
+	"psychoactive": "Yes",
+	"wikilink": "https://en.wikipedia.org/wiki/Caffeine"
+},
+{
+	"name": "Theobromine",
+	"effects": ["Adenosine Inhibition"],
+	"psychoactive": "No",
+	"wikilink": "https://en.wikipedia.org/wiki/Theobromine"
+},
+{
+	"name": "Theophylline",
+	"effects": ["Adenosine Inhibition"],
+	"psychoactive": "No",
+	"wikilink": "https://en.wikipedia.org/wiki/Theophylline"
+},
+{
+	"name": "L-theanine",
+	"effects": ["Relaxation"],
+	"psychoactive": "No",
+	"wikilink": "https://en.wikipedia.org/wiki/Theanine"
+}
+]

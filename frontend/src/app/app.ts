@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TeaService, Tea, Blend, Effect, Herb } from './tea.service';
+import { TeaService, Tea, Blend, Effect, Plant } from './tea.service';
 
 @Component({
   selector: 'app-root',
@@ -19,14 +19,14 @@ export class App implements OnInit {
   showDetailOverlay = signal(false);
   detailTea = signal<Tea | null>(null);
   detailEffects = signal<Effect[]>([]);
-  detailHerb = signal<Herb | null>(null);
+  detailPlant = signal<Plant | null>(null);
   blendLoading = signal(false);
   detailLoading = signal(false);
 
   effectCounts = computed(() => {
     const b = this.blend();
-    if (!b) return new Map<number, number>();
-    const counts = new Map<number, number>();
+    if (!b) return new Map<string, number>();
+    const counts = new Map<string, number>();
     for (const tea of b.teas) {
       for (const effect of (tea.EFFECTS ?? [])) {
         counts.set(effect.ID, (counts.get(effect.ID) ?? 0) + 1);
@@ -70,15 +70,15 @@ export class App implements OnInit {
     event.stopPropagation();
     this.detailTea.set(tea);
     this.detailEffects.set([]);
-    this.detailHerb.set(null);
+    this.detailPlant.set(null);
     this.detailLoading.set(true);
     this.showDetailOverlay.set(true);
     this.teaService.getBlend([tea.ID]).subscribe(blend => {
       this.detailEffects.set(blend.effects);
       this.detailLoading.set(false);
     });
-    this.teaService.getTeaHerb(tea.ID).subscribe(herb => {
-      this.detailHerb.set(herb);
+    this.teaService.getTeaPlant(tea.ID).subscribe(plant => {
+      this.detailPlant.set(plant);
     });
   }
 
@@ -86,7 +86,7 @@ export class App implements OnInit {
     this.showDetailOverlay.set(false);
     this.detailTea.set(null);
     this.detailEffects.set([]);
-    this.detailHerb.set(null);
+    this.detailPlant.set(null);
   }
 
   onSelectorBackdropClick(event: MouseEvent) {
@@ -115,7 +115,7 @@ export class App implements OnInit {
     });
   }
 
-  sharedClass(effectId: number): string {
+  sharedClass(effectId: string): string {
     const count = this.effectCounts().get(effectId) ?? 0;
     if (count >= 3) return 'effect-shared-3';
     if (count >= 2) return 'effect-shared-2';

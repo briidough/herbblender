@@ -1,0 +1,12 @@
+herbblender refactor DAL
+Swap OracleDB for MongoDB
+schemas folder contains mongodb diagram and the current data in the mongodb
+
+this is the command I use to connect via mongosh, it will require me to enter my password:
+
+connection string is below:
+mongodb+srv://briidough_db_user:<db_password>@clusterherbs.q9vwrrs.mongodb.net/?appName=ClusterHerbs
+
+could you add <db_password> to the configureable environment variables?
+
+instead of images stored in the oracleDB as blobs, they will be stored in /images/teas and /images/plants with a folder structure that relates to the tea and plant names

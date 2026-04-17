@@ -1,0 +1,288 @@
+{
+  "collections": {
+    "tea_blender.alkaloids": {
+      "ns": "tea_blender.alkaloids",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "effects",
+          "name",
+          "psychoactive",
+          "wikilink"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "effects": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "psychoactive": {
+            "bsonType": "string"
+          },
+          "wikilink": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "tea_blender.effects": {
+      "ns": "tea_blender.effects",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "description",
+          "name",
+          "quality"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "quality": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "tea_blender.plants": {
+      "ns": "tea_blender.plants",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "description",
+          "family",
+          "genus",
+          "name",
+          "nativeRange",
+          "species"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "family": {
+            "bsonType": "string"
+          },
+          "genus": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "nativeRange": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "species": {
+            "bsonType": "string"
+          }
+        }
+      }
+    },
+    "tea_blender.teas": {
+      "ns": "tea_blender.teas",
+      "jsonSchema": {
+        "bsonType": "object",
+        "required": [
+          "_id",
+          "alkaloids",
+          "description",
+          "effects",
+          "family",
+          "fermentation",
+          "genus",
+          "name",
+          "oxidation",
+          "species"
+        ],
+        "properties": {
+          "_id": {
+            "bsonType": "objectId"
+          },
+          "alkaloids": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "description": {
+            "bsonType": "string"
+          },
+          "effects": {
+            "bsonType": "array",
+            "items": {
+              "bsonType": "string"
+            }
+          },
+          "family": {
+            "bsonType": "string"
+          },
+          "fermentation": {
+            "bsonType": "string"
+          },
+          "genus": {
+            "bsonType": "string"
+          },
+          "name": {
+            "bsonType": "string"
+          },
+          "oxidation": {
+            "bsonType": "string"
+          },
+          "species": {
+            "bsonType": "string"
+          }
+        }
+      }
+    }
+  },
+  "relationships": [
+    {
+      "id": "c7b6833f-86c8-4446-9147-67239a5c3d92",
+      "relationship": [
+        {
+          "ns": "tea_blender.plants",
+          "cardinality": 1,
+          "fields": [
+            "family"
+          ]
+        },
+        {
+          "ns": "tea_blender.teas",
+          "cardinality": 1,
+          "fields": [
+            "family"
+          ]
+        }
+      ],
+      "isInferred": false,
+      "note": "plant to tea family"
+    },
+    {
+      "id": "a666e1a8-60b7-4535-b26e-ef37d2e5f1ac",
+      "relationship": [
+        {
+          "ns": "tea_blender.plants",
+          "cardinality": 1,
+          "fields": [
+            "genus"
+          ]
+        },
+        {
+          "ns": "tea_blender.teas",
+          "cardinality": 1,
+          "fields": [
+            "genus"
+          ]
+        }
+      ],
+      "isInferred": false,
+      "note": "plant to tea genus"
+    },
+    {
+      "id": "4e57ea01-947e-48c0-a37e-3aba8d911f4d",
+      "relationship": [
+        {
+          "ns": "tea_blender.plants",
+          "cardinality": 1,
+          "fields": [
+            "species"
+          ]
+        },
+        {
+          "ns": "tea_blender.teas",
+          "cardinality": 1,
+          "fields": [
+            "species"
+          ]
+        }
+      ],
+      "isInferred": false,
+      "note": "plant to tea species"
+    },
+    {
+      "id": "0228910d-28c2-42b8-a7d1-8970ca136116",
+      "relationship": [
+        {
+          "ns": "tea_blender.teas",
+          "cardinality": 1,
+          "fields": [
+            "alkaloids"
+          ]
+        },
+        {
+          "ns": "tea_blender.alkaloids",
+          "cardinality": 1,
+          "fields": [
+            "name"
+          ]
+        }
+      ],
+      "isInferred": false,
+      "note": "tea to alkaloid"
+    },
+    {
+      "id": "a2406948-ed0e-4f92-b683-f0c0a5b5f132",
+      "relationship": [
+        {
+          "ns": "tea_blender.teas",
+          "cardinality": 1,
+          "fields": [
+            "effects"
+          ]
+        },
+        {
+          "ns": "tea_blender.effects",
+          "cardinality": 1,
+          "fields": [
+            "name"
+          ]
+        }
+      ],
+      "isInferred": false,
+      "note": "tea to effects"
+    },
+    {
+      "id": "16d12618-90db-4e50-bb3d-32ef455ff57c",
+      "relationship": [
+        {
+          "ns": "tea_blender.alkaloids",
+          "cardinality": 1,
+          "fields": [
+            "effects"
+          ]
+        },
+        {
+          "ns": "tea_blender.effects",
+          "cardinality": 1,
+          "fields": [
+            "name"
+          ]
+        }
+      ],
+      "isInferred": false,
+      "note": "alkaloids to effets"
+    }
+  ]
+}

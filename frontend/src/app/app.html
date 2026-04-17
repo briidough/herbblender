@@ -10,8 +10,8 @@
           <span class="selected-card-name">{{ tea.NAME }}</span>
           <button class="selected-card-remove" (click)="removeTea(tea); $event.stopPropagation()" title="Remove">&#x2715;</button>
         </div>
-        @if (tea.IMAGE_ID) {
-          <img class="selected-card-img" [src]="'/api/images/' + tea.IMAGE_ID" alt="{{ tea.NAME }}" />
+        @if (tea.IMAGE_PATH) {
+          <img class="selected-card-img" [src]="'/images/' + tea.IMAGE_PATH" alt="{{ tea.NAME }}" />
         }
       </div>
     }
@@ -53,8 +53,8 @@
       <div class="overlay-list">
         @for (tea of allTeas(); track tea.ID) {
           <div class="overlay-tea-row" [class.already-selected]="isSelected(tea)" (click)="addTea(tea)">
-            @if (tea.IMAGE_ID) {
-              <img class="tea-img" [src]="'/api/images/' + tea.IMAGE_ID" alt="{{ tea.NAME }}" />
+            @if (tea.IMAGE_PATH) {
+              <img class="tea-img" [src]="'/images/' + tea.IMAGE_PATH" alt="{{ tea.NAME }}" />
             } @else {
               <div class="tea-img-placeholder"></div>
             }
@@ -81,8 +81,8 @@
         <button class="overlay-close" (click)="closeDetailOverlay()">&#x2715;</button>
       </div>
       <div class="overlay-detail-body">
-        @if (detailTea()?.IMAGE_ID) {
-          <img class="tea-img tea-img--large" [src]="'/api/images/' + detailTea()!.IMAGE_ID" alt="{{ detailTea()?.NAME }}" />
+        @if (detailTea()?.IMAGE_PATH) {
+          <img class="tea-img tea-img--large" [src]="'/images/' + detailTea()!.IMAGE_PATH" alt="{{ detailTea()?.NAME }}" />
         } @else {
           <div class="tea-img-placeholder tea-img-placeholder--large"></div>
         }
@@ -98,15 +98,15 @@
           </div>
         }
         <p class="overlay-full-desc">{{ detailTea()?.DESCRIPTION }}</p>
-        @if (detailHerb(); as herb) {
+        @if (detailPlant(); as plant) {
           <div class="herb-info-section">
             <h3 class="herb-info-title">Herb Info</h3>
-            <p class="herb-info-name">{{ herb.NAME }}</p>
-            <p class="herb-info-classification"><em>{{ herb.GENUS }} {{ herb.SPECIES }}</em></p>
-            @if (herb.IMAGE_ID) {
-              <img class="herb-img" [src]="'/api/images/' + herb.IMAGE_ID" alt="{{ herb.NAME }}" />
+            <p class="herb-info-name">{{ plant.NAME }}</p>
+            <p class="herb-info-classification"><em>{{ plant.GENUS }} {{ plant.SPECIES }}</em></p>
+            @if (plant.IMAGE_PATH) {
+              <img class="herb-img" [src]="'/images/' + plant.IMAGE_PATH" alt="{{ plant.NAME }}" />
             }
-            <p class="herb-info-desc">{{ herb.DESCRIPTION }}</p>
+            <p class="herb-info-desc">{{ plant.DESCRIPTION }}</p>
           </div>
         }
       </div>

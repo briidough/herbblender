@@ -3,19 +3,23 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Effect {
-  ID: number;
+  ID: string;
   NAME: string;
   DESCRIPTION: string;
   QUALITY: string;
 }
 
 export interface Tea {
-  ID: number;
+  ID: string;
   NAME: string;
   DESCRIPTION: string;
-  HERB_ID: number;
   OXIDATION: string;
-  IMAGE_ID?: number | null;
+  FERMENTATION: string;
+  GENUS: string;
+  SPECIES: string;
+  FAMILY: string;
+  ALKALOIDS: string[];
+  IMAGE_PATH?: string | null;
   EFFECTS?: Effect[];
 }
 
@@ -24,13 +28,14 @@ export interface Blend {
   effects: Effect[];
 }
 
-export interface Herb {
+export interface Plant {
   NAME: string;
   GENUS: string;
   SPECIES: string;
+  FAMILY: string;
   DESCRIPTION: string;
-  OTHER_NAMES: string;
-  IMAGE_ID?: number | null;
+  NATIVE_RANGE: string[];
+  IMAGE_PATH?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -41,11 +46,11 @@ export class TeaService {
     return this.http.get<Tea[]>('/api/teas');
   }
 
-  getBlend(ids: number[]): Observable<Blend> {
+  getBlend(ids: string[]): Observable<Blend> {
     return this.http.get<Blend>(`/api/blend?ids=${ids.join(',')}`);
   }
 
-  getTeaHerb(teaId: number): Observable<Herb> {
-    return this.http.get<Herb>(`/api/teas/${teaId}/herb`);
+  getTeaPlant(teaId: string): Observable<Plant> {
+    return this.http.get<Plant>(`/api/teas/${teaId}/plant`);
   }
 }
