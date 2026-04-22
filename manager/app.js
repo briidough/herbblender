@@ -1,5 +1,4 @@
-// OracleDB returns uppercase column names: ID, NAME, DESCRIPTION, etc.
-// All field access uses uppercase keys to match.
+// MongoDB DAL normalizes documents to uppercase keys: ID, NAME, DESCRIPTION, etc.
 
 const state = {
   activeSection: null,  // 'herbs' | 'teas' | 'effects'
@@ -7,10 +6,8 @@ const state = {
   items: [],
   selectedItem: null,
   allEffects: [],       // full effect list for tea editor picker
-  allHerbs: [],         // full herb list for tea editor herb select
   editMode: null,       // 'new' | 'edit'
   editOrigin: null,     // 'list' | 'detail'
-  images: [],           // image metadata for current herb or tea
   errorMsg: null,
 };
 
@@ -29,11 +26,6 @@ const api = {
     body: JSON.stringify(body),
   }).then(r => r.json()),
   del: (path) => fetch(path, { method: 'DELETE' }).then(r => r.json()),
-  upload: (path, file) => {
-    const fd = new FormData();
-    fd.append('image', file);
-    return fetch(path, { method: 'POST', body: fd }).then(r => r.json());
-  },
 };
 
 // ── Rendering ─────────────────────────────────────────────────────────────────
@@ -91,19 +83,22 @@ function renderDetail() {
       <div class="detail-grid">
         <span class="detail-label">Genus</span><span class="detail-value">${esc(item.GENUS || '')}</span>
         <span class="detail-label">Species</span><span class="detail-value">${esc(item.SPECIES || '')}</span>
-        <span class="detail-label">Other names</span><span class="detail-value">${esc(item.OTHER_NAMES || '')}</span>
+        <span class="detail-label">Family</span><span class="detail-value">${esc(item.FAMILY || '')}</span>
+        <span class="detail-label">Native range</span><span class="detail-value">${esc((item.NATIVE_RANGE || []).join(', '))}</span>
         <span class="detail-label">Description</span><span class="detail-value">${esc(item.DESCRIPTION || '')}</span>
       </div>`;
   } else if (section === 'teas') {
-    const herbName = state.allHerbs.find(h => h.ID === item.HERB_ID)?.NAME ?? item.HERB_ID ?? '';
+    const plantName = [item.GENUS, item.SPECIES].filter(Boolean).join(' ');
     const effectsHtml = (item.EFFECTS || []).length
       ? `<div class="effects-list">${(item.EFFECTS || []).map(e =>
           `<span class="effect-chip ${qualityClass(e.QUALITY)}">${esc(e.NAME)}</span>`).join('')}</div>`
       : '<span style="color:#90a4ae;font-size:0.85rem">None</span>';
     fields = `
       <div class="detail-grid">
-        <span class="detail-label">Herb</span><span class="detail-value">${esc(String(herbName))}</span>
+        <span class="detail-label">Plant</span><span class="detail-value">${esc(plantName)}</span>
+        <span class="detail-label">Family</span><span class="detail-value">${esc(item.FAMILY || '')}</span>
         <span class="detail-label">Oxidation</span><span class="detail-value">${esc(item.OXIDATION || '')}</span>
+        <span class="detail-label">Fermentation</span><span class="detail-value">${esc(item.FERMENTATION || '')}</span>
         <span class="detail-label">Description</span><span class="detail-value">${esc(item.DESCRIPTION || '')}</span>
       </div>
       <div class="detail-section-title">Effects</div>
@@ -119,15 +114,12 @@ function renderDetail() {
       </div>`;
   }
 
-  const imagesHtml = (section === 'herbs' || section === 'teas')
-    ? `<div class="detail-section-title">Images</div>
+  const imgHtml = (section === 'herbs' || section === 'teas') && item.IMAGE_PATH
+    ? `<div class="detail-section-title">Image</div>
        <div class="image-gallery">
-         ${state.images.length
-           ? state.images.map(img => `
-               <div class="image-card">
-                 <img class="image-thumb" src="/api/images/${img.ID}" alt="${esc(img.IMAGE_NAME || '')}">
-               </div>`).join('')
-           : '<span style="color:#90a4ae;font-size:0.85rem">No images.</span>'}
+         <div class="image-card">
+           <img class="image-thumb" src="/images/${item.IMAGE_PATH}" alt="${esc(item.NAME)}">
+         </div>
        </div>`
     : '';
 
@@ -139,7 +131,7 @@ function renderDetail() {
       <div class="detail-type">${state.activeSection.charAt(0).toUpperCase() + state.activeSection.slice(1, -1)}</div>
       ${state.errorMsg ? `<div class="error-banner">${esc(state.errorMsg)}</div>` : ''}
       ${fields}
-      ${imagesHtml}
+      ${imgHtml}
       <div class="detail-actions">
         <button class="btn btn-blue" data-action="open-edit" data-id="${item.ID}">Edit</button>
         <button class="btn btn-gray" data-action="back-to-list">Back</button>
@@ -154,6 +146,8 @@ function renderEdit() {
   const item = state.selectedItem;
   const isNew = state.editMode === 'new';
   const title = isNew ? `New ${section.slice(0, -1)}` : `Edit ${esc(item?.NAME || '')}`;
+  const currentIdx = !isNew ? state.items.findIndex(i => i.ID === item?.ID) : -1;
+  const hasNext = currentIdx >= 0 && currentIdx < state.items.length - 1;
 
   let formFields = '';
   if (section === 'herbs') {
@@ -161,32 +155,30 @@ function renderEdit() {
       ${field('name', 'Name', item?.NAME, 'text', true)}
       ${field('genus', 'Genus', item?.GENUS)}
       ${field('species', 'Species', item?.SPECIES)}
-      ${field('other_names', 'Other Names', item?.OTHER_NAMES)}
+      ${field('family', 'Family', item?.FAMILY)}
+      ${field('native_range', 'Native Range', (item?.NATIVE_RANGE || []).join(', '))}
       ${textarea('description', 'Description', item?.DESCRIPTION)}`;
 
   } else if (section === 'teas') {
-    const herbOptions = state.allHerbs.map(h =>
-      `<option value="${h.ID}" ${item?.HERB_ID === h.ID ? 'selected' : ''}>${esc(h.NAME)}</option>`
-    ).join('');
     const currentEffects = (item?.EFFECTS || []).map(e => `
       <div class="effect-row">
         <span class="effect-row-name">${esc(e.NAME)}</span>
         <span class="quality-badge ${qualityClass(e.QUALITY)}">${esc(e.QUALITY || '')}</span>
-        <button class="btn btn-red btn-icon" data-action="unlink-effect" data-effect-id="${e.ID}">−</button>
+        <button class="btn btn-red btn-icon" data-action="unlink-effect" data-effect-name="${esc(e.NAME)}">−</button>
       </div>`).join('');
 
-    const linkedIds = new Set((item?.EFFECTS || []).map(e => e.ID));
-    const availableEffects = state.allEffects.filter(e => !linkedIds.has(e.ID));
+    const linkedNames = new Set((item?.EFFECTS || []).map(e => e.NAME));
+    const availableEffects = state.allEffects.filter(e => !linkedNames.has(e.NAME));
     const effectOptions = availableEffects.map(e =>
-      `<option value="${e.ID}">${esc(e.NAME)}</option>`).join('');
+      `<option value="${esc(e.NAME)}">${esc(e.NAME)}</option>`).join('');
 
     formFields = `
       ${field('name', 'Name', item?.NAME, 'text', true)}
-      <div class="form-field">
-        <label>Herb</label>
-        <select name="herb_id">${herbOptions}</select>
-      </div>
+      ${field('genus', 'Genus', item?.GENUS)}
+      ${field('species', 'Species', item?.SPECIES)}
+      ${field('family', 'Family', item?.FAMILY)}
       ${field('oxidation', 'Oxidation', item?.OXIDATION)}
+      ${field('fermentation', 'Fermentation', item?.FERMENTATION)}
       ${textarea('description', 'Description', item?.DESCRIPTION)}
       <div class="form-field">
         <label>Effects</label>
@@ -210,9 +202,9 @@ function renderEdit() {
               <option value="negative">Negative</option>
               <option value="neutral">Neutral</option>
             </select>
-            <div style="display:flex;gap:0.4rem">
-              <button class="btn btn-green btn-icon" data-action="save-link-effect">Save &amp; Link</button>
+            <div style="display:flex;justify-content:space-between">
               <button class="btn btn-gray btn-icon" data-action="cancel-new-effect">Cancel</button>
+              <button class="btn btn-green btn-icon" data-action="save-link-effect">Save &amp; Link</button>
             </div>
           </div>` : '<p style="color:#90a4ae;font-size:0.82rem;margin-top:0.4rem">Save the tea first to manage effects.</p>'}
         </div>
@@ -233,19 +225,13 @@ function renderEdit() {
       </div>`;
   }
 
-  const imagesSection = (!isNew && (section === 'herbs' || section === 'teas'))
+  const imgHtml = (!isNew && (section === 'herbs' || section === 'teas') && item?.IMAGE_PATH)
     ? `<div class="form-field">
-        <label>Images</label>
+        <label>Image</label>
         <div class="image-gallery">
-          ${state.images.map(img => `
-            <div class="image-card">
-              <img class="image-thumb" src="/api/images/${img.ID}" alt="${esc(img.IMAGE_NAME || '')}">
-              <button class="btn image-delete-btn" data-action="delete-image" data-image-id="${img.ID}" title="Remove">×</button>
-            </div>`).join('')}
-        </div>
-        <div class="image-upload-row">
-          <input type="file" id="image-file-input" accept="image/*">
-          <button class="btn btn-green btn-icon" data-action="upload-image">Upload</button>
+          <div class="image-card">
+            <img class="image-thumb" src="/images/${item.IMAGE_PATH}" alt="${esc(item?.NAME || '')}">
+          </div>
         </div>
        </div>`
     : '';
@@ -256,10 +242,13 @@ function renderEdit() {
       ${state.errorMsg ? `<div class="error-banner">${esc(state.errorMsg)}</div>` : ''}
       <form id="edit-form" autocomplete="off">
         ${formFields}
-        ${imagesSection}
+        ${imgHtml}
         <div class="form-actions">
-          <button type="submit" class="btn btn-blue">Save</button>
           <button type="button" class="btn btn-gray" data-action="cancel-edit">Cancel</button>
+          <div style="display:flex;gap:0.4rem">
+            <button type="button" class="btn btn-blue" data-action="save-and-next" ${!hasNext ? 'disabled' : ''}>Save &amp; Next</button>
+            <button type="submit" class="btn btn-blue">Save</button>
+          </div>
         </div>
       </form>
     </div>`;
@@ -312,7 +301,7 @@ function attachListeners() {
 
 async function handleAction(e) {
   const action = e.currentTarget.dataset.action;
-  const id = e.currentTarget.dataset.id ? Number(e.currentTarget.dataset.id) : null;
+  const id = e.currentTarget.dataset.id || null;
 
   state.errorMsg = null;
 
@@ -323,13 +312,12 @@ async function handleAction(e) {
     case 'delete-item':   await deleteItem(id); break;
     case 'back-to-list':  await selectSection(state.activeSection); break;
     case 'cancel-edit':   cancelEdit(); break;
-    case 'unlink-effect': await unlinkEffect(Number(e.currentTarget.dataset.effectId)); break;
+    case 'unlink-effect': await unlinkEffect(e.currentTarget.dataset.effectName); break;
     case 'link-effect':   await linkEffect(); break;
     case 'toggle-new-effect': toggleNewEffectForm(); break;
     case 'cancel-new-effect': toggleNewEffectForm(false); break;
     case 'save-link-effect':  await saveAndLinkEffect(); break;
-    case 'upload-image':  await uploadImage(); break;
-    case 'delete-image':  await deleteImage(Number(e.currentTarget.dataset.imageId)); break;
+    case 'save-and-next':     await handleSaveAndNext(); break;
   }
 }
 
@@ -339,7 +327,6 @@ async function selectSection(section) {
   state.activeSection = section;
   state.screen = 'list';
   state.selectedItem = null;
-  state.images = [];
   state.errorMsg = null;
 
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -365,8 +352,6 @@ async function openDetail(id) {
   if (section === 'teas') {
     item = await api.get(`/api/teas/${id}`);
     item.EFFECTS = await api.get(`/api/teas/${id}/effects`);
-    // Ensure allHerbs is loaded for herb name lookup
-    if (!state.allHerbs.length) state.allHerbs = await api.get('/api/herbs');
   } else if (section === 'herbs') {
     item = await api.get(`/api/herbs/${id}`);
   } else {
@@ -375,11 +360,6 @@ async function openDetail(id) {
 
   state.selectedItem = item;
   state.screen = 'detail';
-
-  if (section === 'herbs' || section === 'teas') {
-    state.images = await api.get(`/api/${section}/${id}/images`);
-  }
-
   render();
 }
 
@@ -394,21 +374,12 @@ async function openEditMode(id) {
   if (section === 'teas') {
     const item = await api.get(`/api/teas/${id}`);
     item.EFFECTS = await api.get(`/api/teas/${id}/effects`);
-    const [allEffects, allHerbs] = await Promise.all([
-      api.get('/api/effects'),
-      api.get('/api/herbs'),
-    ]);
-    state.allEffects = allEffects;
-    state.allHerbs = allHerbs;
+    state.allEffects = await api.get('/api/effects');
     state.selectedItem = item;
   } else if (section === 'herbs') {
     state.selectedItem = await api.get(`/api/herbs/${id}`);
   } else {
     state.selectedItem = await api.get(`/api/effects/${id}`);
-  }
-
-  if (section === 'herbs' || section === 'teas') {
-    state.images = await api.get(`/api/${section}/${id}/images`);
   }
 
   state.screen = 'edit';
@@ -419,15 +390,9 @@ async function openNew() {
   state.editMode = 'new';
   state.editOrigin = 'list';
   state.selectedItem = null;
-  state.images = [];
 
   if (state.activeSection === 'teas') {
-    const [allEffects, allHerbs] = await Promise.all([
-      api.get('/api/effects'),
-      api.get('/api/herbs'),
-    ]);
-    state.allEffects = allEffects;
-    state.allHerbs = allHerbs;
+    state.allEffects = await api.get('/api/effects');
   }
 
   state.screen = 'edit';
@@ -451,6 +416,10 @@ async function handleSave(e) {
   const data = Object.fromEntries(new FormData(form).entries());
   const section = state.activeSection;
   const isNew = state.editMode === 'new';
+
+  if (section === 'herbs' && data.native_range !== undefined) {
+    data.native_range = data.native_range.split(',').map(s => s.trim()).filter(Boolean);
+  }
 
   let result;
   if (section === 'herbs') {
@@ -482,14 +451,43 @@ async function handleSave(e) {
   }
 }
 
+async function handleSaveAndNext() {
+  const form = document.getElementById('edit-form');
+  if (!form) return;
+
+  const currentIdx = state.items.findIndex(i => i.ID === state.selectedItem?.ID);
+  const nextItem = state.items[currentIdx + 1];
+  if (!nextItem) return;
+
+  const data = Object.fromEntries(new FormData(form).entries());
+  const section = state.activeSection;
+
+  if (section === 'herbs' && data.native_range !== undefined) {
+    data.native_range = data.native_range.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  let result;
+  if (section === 'herbs')        result = await api.put(`/api/herbs/${state.selectedItem.ID}`, data);
+  else if (section === 'teas')    result = await api.put(`/api/teas/${state.selectedItem.ID}`, data);
+  else                            result = await api.put(`/api/effects/${state.selectedItem.ID}`, data);
+
+  if (result.error) {
+    state.errorMsg = result.error;
+    render();
+    return;
+  }
+
+  await openEditMode(nextItem.ID);
+}
+
 // ── Delete ────────────────────────────────────────────────────────────────────
 
 async function deleteItem(id) {
   const section = state.activeSection;
   let result;
-  if (section === 'herbs')   result = await api.del(`/api/herbs/${id}`);
+  if (section === 'herbs')        result = await api.del(`/api/herbs/${id}`);
   else if (section === 'teas')    result = await api.del(`/api/teas/${id}`);
-  else result = await api.del(`/api/effects/${id}`);
+  else                            result = await api.del(`/api/effects/${id}`);
 
   if (result.error) {
     state.errorMsg = result.error;
@@ -502,9 +500,9 @@ async function deleteItem(id) {
 
 // ── Tea effects ───────────────────────────────────────────────────────────────
 
-async function unlinkEffect(effectId) {
+async function unlinkEffect(effectName) {
   const teaId = state.selectedItem.ID;
-  await api.del(`/api/teas/${teaId}/effects/${effectId}`);
+  await api.del(`/api/teas/${teaId}/effects/${encodeURIComponent(effectName)}`);
   await refreshTeaEffects(teaId);
 }
 
@@ -512,7 +510,7 @@ async function linkEffect() {
   const teaId = state.selectedItem.ID;
   const picker = document.getElementById('effect-picker');
   if (!picker || !picker.value) return;
-  const result = await api.post(`/api/teas/${teaId}/effects`, { effectId: Number(picker.value) });
+  const result = await api.post(`/api/teas/${teaId}/effects`, { effectName: picker.value });
   if (result.error) { state.errorMsg = result.error; render(); return; }
   await refreshTeaEffects(teaId);
 }
@@ -535,7 +533,7 @@ async function saveAndLinkEffect() {
   if (created.error) { state.errorMsg = created.error; render(); return; }
 
   const teaId = state.selectedItem.ID;
-  const linked = await api.post(`/api/teas/${teaId}/effects`, { effectId: created.id });
+  const linked = await api.post(`/api/teas/${teaId}/effects`, { effectName: name });
   if (linked.error) { state.errorMsg = linked.error; render(); return; }
 
   state.allEffects = await api.get('/api/effects');
@@ -545,27 +543,6 @@ async function saveAndLinkEffect() {
 async function refreshTeaEffects(teaId) {
   state.selectedItem.EFFECTS = await api.get(`/api/teas/${teaId}/effects`);
   state.errorMsg = null;
-  render();
-}
-
-// ── Images ────────────────────────────────────────────────────────────────────
-
-async function uploadImage() {
-  const input = document.getElementById('image-file-input');
-  if (!input || !input.files.length) return;
-  const section = state.activeSection;
-  const id = state.selectedItem.ID;
-  const result = await api.upload(`/api/${section}/${id}/images`, input.files[0]);
-  if (result.error) { state.errorMsg = result.error; render(); return; }
-  state.images = await api.get(`/api/${section}/${id}/images`);
-  render();
-}
-
-async function deleteImage(imageId) {
-  const section = state.activeSection;
-  const id = state.selectedItem.ID;
-  await api.del(`/api/${section}/${id}/images/${imageId}`);
-  state.images = await api.get(`/api/${section}/${id}/images`);
   render();
 }
 
