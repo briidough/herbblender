@@ -285,7 +285,7 @@ header h1 {
 
 .form-actions {
   display: flex;
-  gap: 0.5rem;
+  justify-content: space-between;
   margin-top: 1rem;
 }
 

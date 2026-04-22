@@ -9,7 +9,7 @@ const app = express();
 app.use(createProxyMiddleware({
   target: 'http://localhost:3000',
   changeOrigin: true,
-  pathFilter: '/api/**',
+  pathFilter: ['/api/**', '/images/**'],
 }));
 
 app.use(express.static(path.join(__dirname)));
