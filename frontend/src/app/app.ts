@@ -55,6 +55,17 @@ export class App implements OnInit {
   detailPlant = signal<Plant | null>(null);
   blendLoading = signal(false);
   detailLoading = signal(false);
+  selectedEffectFilter = signal<string>('');
+
+  allEffectNames = computed<string[]>(() =>
+    [...new Set(this.allTeas().flatMap(t => t.EFFECT_NAMES))].sort()
+  );
+
+  filteredTeas = computed<Tea[]>(() => {
+    const filter = this.selectedEffectFilter();
+    if (!filter) return this.allTeas();
+    return this.allTeas().filter(t => t.EFFECT_NAMES.includes(filter));
+  });
 
   effectCounts = computed(() => {
     const b = this.blend();
@@ -69,7 +80,9 @@ export class App implements OnInit {
   });
 
   ngOnInit() {
-    this.teaService.getTeas().subscribe(teas => this.allTeas.set(teas));
+    this.teaService.getTeas().subscribe(teas =>
+      this.allTeas.set(teas.sort((a, b) => a.NAME.localeCompare(b.NAME)))
+    );
   }
 
   isSelected(tea: Tea): boolean {
@@ -83,6 +96,7 @@ export class App implements OnInit {
 
   closeSelectorOverlay() {
     this.showSelectorOverlay.set(false);
+    this.selectedEffectFilter.set('');
     this.closeDetailOverlay();
   }
 

@@ -18,22 +18,35 @@ function firstImage(subdir, name) {
   } catch { return null; }
 }
 
+function allImages(subdir, name) {
+  try {
+    const slug = slugify(name);
+    const dir = path.join(IMAGES_DIR, subdir, slug);
+    return fs.readdirSync(dir)
+      .filter(f => /\.(jpg|jpeg|png|webp|gif)$/i.test(f))
+      .sort()
+      .map(f => `${subdir}/${slug}/${f}`);
+  } catch { return []; }
+}
+
 function toId(id) {
   return new ObjectId(id);
 }
 
 function normTea(t) {
   return {
-    ID:          t._id.toString(),
-    NAME:        t.name,
-    DESCRIPTION: t.description,
-    OXIDATION:   t.oxidation,
+    ID:           t._id.toString(),
+    NAME:         t.name,
+    DESCRIPTION:  t.description,
+    OXIDATION:    t.oxidation,
     FERMENTATION: t.fermentation,
-    GENUS:       t.genus,
-    SPECIES:     t.species,
-    FAMILY:      t.family,
-    ALKALOIDS:   t.alkaloids || [],
-    IMAGE_PATH:  firstImage('teas', t.name)
+    GENUS:        t.genus,
+    SPECIES:      t.species,
+    FAMILY:       t.family,
+    ALKALOIDS:    t.alkaloids || [],
+    EFFECT_NAMES:  t.effects || [],
+    IMAGE_PATH:    firstImage('teas', t.name),
+    IMAGE_PATHS:   allImages('teas', t.name)
   };
 }
 

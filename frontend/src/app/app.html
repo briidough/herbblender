@@ -50,8 +50,16 @@
         <h2>Choose a Tea</h2>
         <button class="overlay-close" (click)="closeSelectorOverlay()">&#x2715;</button>
       </div>
+      <div class="overlay-filter-bar">
+        <select [value]="selectedEffectFilter()" (change)="selectedEffectFilter.set($any($event.target).value)">
+          <option value="">All effects</option>
+          @for (name of allEffectNames(); track name) {
+            <option [value]="name">{{ name }}</option>
+          }
+        </select>
+      </div>
       <div class="overlay-list">
-        @for (tea of allTeas(); track tea.ID) {
+        @for (tea of filteredTeas(); track tea.ID) {
           <div class="overlay-tea-row" [class.already-selected]="isSelected(tea)" (click)="addTea(tea)">
             @if (tea.IMAGE_PATH) {
               <img class="tea-img" [src]="'/images/' + tea.IMAGE_PATH" alt="{{ tea.NAME }}" />
@@ -81,11 +89,16 @@
         <button class="overlay-close" (click)="closeDetailOverlay()">&#x2715;</button>
       </div>
       <div class="overlay-detail-body">
-        @if (detailTea()?.IMAGE_PATH) {
-          <img class="tea-img tea-img--large" [src]="'/images/' + detailTea()!.IMAGE_PATH" alt="{{ detailTea()?.NAME }}" />
-        } @else {
-          <div class="tea-img-placeholder tea-img-placeholder--large"></div>
-        }
+        <div class="tea-images-row">
+          @if (detailTea()?.IMAGE_PATH) {
+            <img class="tea-img tea-img--large" [src]="'/images/' + detailTea()!.IMAGE_PATH" alt="{{ detailTea()?.NAME }}" />
+          } @else {
+            <div class="tea-img-placeholder tea-img-placeholder--large"></div>
+          }
+          @for (path of (detailTea()?.IMAGE_PATHS ?? []).slice(1); track path) {
+            <img class="tea-img tea-img--extra" [src]="'/images/' + path" alt="{{ detailTea()?.NAME }}" />
+          }
+        </div>
         @if (detailLoading()) {
           <p class="empty-msg">Loading effects…</p>
         } @else {

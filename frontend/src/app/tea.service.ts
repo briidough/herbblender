@@ -19,7 +19,9 @@ export interface Tea {
   SPECIES: string;
   FAMILY: string;
   ALKALOIDS: string[];
+  EFFECT_NAMES: string[];
   IMAGE_PATH?: string | null;
+  IMAGE_PATHS: string[];
   EFFECTS?: Effect[];
 }
 
