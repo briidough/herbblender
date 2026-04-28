@@ -30,7 +30,7 @@
       } @else if (blend(); as b) {
         <div class="effects-grid">
           @for (effect of b.effects; track effect.ID) {
-            <div class="effect-chip" [class]="qualityClass(effect.QUALITY)" [class.effect-shared-2]="sharedClass(effect.ID) === 'effect-shared-2'" [class.effect-shared-3]="sharedClass(effect.ID) === 'effect-shared-3'" [title]="effect.DESCRIPTION">
+            <div class="effect-chip" [class]="moodClass(effect.NAME)" [class.effect-shared-2]="sharedClass(effect.ID) === 'effect-shared-2'" [class.effect-shared-3]="sharedClass(effect.ID) === 'effect-shared-3'" [title]="effect.DESCRIPTION">
               {{ effect.NAME }}
             </div>
           } @empty {
@@ -91,7 +91,7 @@
         } @else {
           <div class="effects-grid">
             @for (effect of detailEffects(); track effect.ID) {
-              <div class="effect-chip" [class]="qualityClass(effect.QUALITY)">{{ effect.NAME }}</div>
+              <div class="effect-chip" [class]="moodClass(effect.NAME)">{{ effect.NAME }}</div>
             } @empty {
               <p class="empty-msg">No effects recorded.</p>
             }

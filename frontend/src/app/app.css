@@ -54,6 +54,8 @@ header h1 {
 .selected-card-name {
   font-weight: 600;
   color: #2d4a2d;
+  max-width: 12ch;
+  overflow-wrap: break-word;
 }
 
 .selected-card-remove {
@@ -125,31 +127,38 @@ header h1 {
   cursor: default;
 }
 
-.effect-positive {
-  background: #e6f4e6;
-  color: #2e6b2e;
-  border: 1px solid #a8d5a8;
+.effect-energizing {
+  background: #fff4e0;
+  color: #7a4f00;
+  border: 1px solid #f5c96a;
 }
 
-.effect-negative {
-  background: #fdecea;
-  color: #a02020;
-  border: 1px solid #f0b0b0;
+.effect-calming {
+  background: #f0ecfb;
+  color: #4a3575;
+  border: 1px solid #c4b0f0;
+}
+
+.effect-protective {
+  background: #e8f5e8;
+  color: #2e5e2e;
+  border: 1px solid #90c890;
+}
+
+.effect-supportive {
+  background: #e5f5f5;
+  color: #1a5f6a;
+  border: 1px solid #82caca;
 }
 
 .effect-shared-2 {
-  border: 3px solid
+  font-weight: 600;
+  border-width: 2px;
 }
 
 .effect-shared-3 {
-  font-weight: 700;
-  border: 3px solid
-}
-
-.effect-neutral {
-  background: #f0f0e8;
-  color: #5a5a3a;
-  border: 1px solid #c8c8a0;
+  font-weight: 800;
+  border-width: 4px;
 }
 
 /* ── Blend loading spinner ───────────────────────── */

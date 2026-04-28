@@ -2,6 +2,39 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TeaService, Tea, Blend, Effect, Plant } from './tea.service';
 
+const EFFECT_MOOD_MAP: Record<string, string> = {
+  'Natural Energy':           'effect-energizing',
+  'Focus & Clarity':          'effect-energizing',
+  'Metabolic Support':        'effect-energizing',
+  'Mood Balance':             'effect-energizing',
+  'Antidepressant':           'effect-energizing',
+  'Sweetening Agent':         'effect-energizing',
+  'Relaxation & Calm':        'effect-calming',
+  'Stress Reduction':         'effect-calming',
+  'Aid Sleep':                'effect-calming',
+  'Anxiolytic':               'effect-calming',
+  'Sedative':                 'effect-calming',
+  'Adaptogenic Support':      'effect-calming',
+  'Antioxidant':              'effect-protective',
+  'Anti-inflammatory':        'effect-protective',
+  'Cell Protection':          'effect-protective',
+  'Neuroprotective':          'effect-protective',
+  'Antimicrobial':            'effect-protective',
+  'Antiviral Support':        'effect-protective',
+  'Immune Support':           'effect-protective',
+  'Cardiovascular Support':   'effect-supportive',
+  'Blood Pressure Regulation':'effect-supportive',
+  'Blood Sugar Regulation':   'effect-supportive',
+  'Cholesterol Reduction':    'effect-supportive',
+  'Respiratory Support':      'effect-supportive',
+  'Liver Support':            'effect-supportive',
+  'Ease Digestion':           'effect-supportive',
+  'Gut Health':               'effect-supportive',
+  'Detox Support':            'effect-supportive',
+  'Hydration & Refreshment':  'effect-supportive',
+  'Astringent':               'effect-supportive',
+};
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule],
@@ -122,11 +155,7 @@ export class App implements OnInit {
     return '';
   }
 
-  qualityClass(quality: string): string {
-    switch (quality?.toLowerCase()) {
-      case 'positive': return 'effect-positive';
-      case 'negative': return 'effect-negative';
-      default: return 'effect-neutral';
-    }
+  moodClass(name: string): string {
+    return EFFECT_MOOD_MAP[name] ?? 'effect-supportive';
   }
 }
