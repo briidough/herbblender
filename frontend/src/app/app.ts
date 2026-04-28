@@ -114,7 +114,7 @@ export class App implements OnInit {
   }
 
   openDetailOverlay(tea: Tea, event: MouseEvent) {
-    event.stopPropagation();
+    event.stopPropagation(); /* ope forgot commit comment*/
     this.detailTea.set(tea);
     this.detailEffects.set([]);
     this.detailPlant.set(null);
