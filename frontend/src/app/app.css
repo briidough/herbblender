@@ -54,7 +54,7 @@ header h1 {
 .selected-card-name {
   font-weight: 600;
   color: #2d4a2d;
-  max-width: 12ch;
+  max-width: 12ch; /* keep for ashwagandha */
   overflow-wrap: break-word;
 }
 
