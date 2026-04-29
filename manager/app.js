@@ -81,10 +81,10 @@ function renderDetail() {
   if (section === 'herbs') {
     fields = `
       <div class="detail-grid">
+        <span class="detail-label">Family</span><span class="detail-value">${esc(item.FAMILY || '')}</span>
         <span class="detail-label">Genus</span><span class="detail-value">${esc(item.GENUS || '')}</span>
         <span class="detail-label">Species</span><span class="detail-value">${esc(item.SPECIES || '')}</span>
-        <span class="detail-label">Family</span><span class="detail-value">${esc(item.FAMILY || '')}</span>
-        <span class="detail-label">Native range</span><span class="detail-value">${esc((item.NATIVE_RANGE || []).join(', '))}</span>
+        <span class="detail-label">Other Names</span><span class="detail-value">${esc((item.OTHER_NAMES || []).join(', '))}</span>
         <span class="detail-label">Description</span><span class="detail-value">${esc(item.DESCRIPTION || '')}</span>
       </div>`;
   } else if (section === 'teas') {
@@ -153,10 +153,14 @@ function renderEdit() {
   if (section === 'herbs') {
     formFields = `
       ${field('name', 'Name', item?.NAME, 'text', true)}
+      ${field('other_names', 'Other Names', (item?.OTHER_NAMES || []).join(', '))}
+      ${field('family', 'Family', item?.FAMILY)}
       ${field('genus', 'Genus', item?.GENUS)}
       ${field('species', 'Species', item?.SPECIES)}
-      ${field('family', 'Family', item?.FAMILY)}
-      ${field('native_range', 'Native Range', (item?.NATIVE_RANGE || []).join(', '))}
+      <div class="form-field">
+        <button type="button" class="btn btn-blue" data-action="fetch-images">Fetch Images</button>
+        <span id="fetch-images-status" class="fetch-status"></span>
+      </div>
       ${textarea('description', 'Description', item?.DESCRIPTION)}`;
 
   } else if (section === 'teas') {
@@ -236,9 +240,13 @@ function renderEdit() {
        </div>`
     : '';
 
+  const headerHtml = (isNew && section === 'herbs')
+    ? `<div class="form-title-row"><h2>${title}</h2><button type="button" class="btn btn-blue" data-action="add-from-tea">Add from tea</button></div>`
+    : `<h2>${title}</h2>`;
+
   return `
     <div class="edit-form">
-      <h2>${title}</h2>
+      ${headerHtml}
       ${state.errorMsg ? `<div class="error-banner">${esc(state.errorMsg)}</div>` : ''}
       <form id="edit-form" autocomplete="off">
         ${formFields}
@@ -318,6 +326,8 @@ async function handleAction(e) {
     case 'cancel-new-effect': toggleNewEffectForm(false); break;
     case 'save-link-effect':  await saveAndLinkEffect(); break;
     case 'save-and-next':     await handleSaveAndNext(); break;
+    case 'add-from-tea':      await openTeaSelector(); break;
+    case 'fetch-images':      await fetchImagesFromGbif(); break;
   }
 }
 
@@ -408,6 +418,85 @@ function cancelEdit() {
   }
 }
 
+// ── GBIF image fetch ──────────────────────────────────────────────────────────
+
+async function fetchImagesFromGbif() {
+  const form = document.getElementById('edit-form');
+  const name   = form.querySelector('[name="name"]').value.trim();
+  const genus  = form.querySelector('[name="genus"]').value.trim();
+  const species = form.querySelector('[name="species"]').value.trim();
+  const family = form.querySelector('[name="family"]').value.trim();
+  const status = document.getElementById('fetch-images-status');
+
+  if (!name || !genus) {
+    status.textContent = 'Name and Genus are required.';
+    return;
+  }
+
+  status.textContent = 'Fetching…';
+  const result = await api.post('/api/gbif/fetch-images', { name, genus, species, family });
+
+  if (result.error) {
+    status.textContent = `Error: ${result.error}`;
+  } else if (!result.saved.length) {
+    status.textContent = 'No images found.';
+  } else {
+    status.textContent = `${result.saved.length} image(s) saved.`;
+    if (!state.editMode === 'new') render();
+  }
+}
+
+// ── Tea selector (for new herb) ───────────────────────────────────────────────
+
+async function openTeaSelector() {
+  const teas = await api.get('/api/herbs/teas-without-herb');
+
+  const rows = teas.map(t => `
+    <div class="tea-pick-row"
+         data-genus="${esc(t.GENUS || '')}"
+         data-species="${esc(t.SPECIES || '')}"
+         data-family="${esc(t.FAMILY || '')}">
+      <span class="tea-pick-name">${esc(t.NAME)}</span>
+      <span class="tea-pick-meta">${esc([t.GENUS, t.SPECIES].filter(Boolean).join(' '))}</span>
+    </div>`).join('');
+
+  const modal = document.createElement('div');
+  modal.className = 'tea-selector-backdrop';
+  modal.innerHTML = `
+    <div class="tea-selector-panel">
+      <div class="tea-selector-header">
+        <span>Choose a tea</span>
+        <button class="btn btn-gray btn-icon" id="close-tea-selector">✕</button>
+      </div>
+      <div class="tea-selector-list">
+        ${rows || '<p class="tea-selector-empty">No teas without a matching herb.</p>'}
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+
+  modal.querySelector('#close-tea-selector').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+
+  modal.querySelectorAll('.tea-pick-row').forEach(row => {
+    row.addEventListener('click', async () => {
+      modal.remove();
+      const form = document.getElementById('edit-form');
+      form.querySelector('[name="genus"]').value   = row.dataset.genus;
+      form.querySelector('[name="species"]').value = row.dataset.species;
+      form.querySelector('[name="family"]').value  = row.dataset.family;
+
+      const names = await api.get(
+        `/api/gbif/common-names?genus=${encodeURIComponent(row.dataset.genus)}&species=${encodeURIComponent(row.dataset.species)}&family=${encodeURIComponent(row.dataset.family)}`
+      );
+      if (names && names.length) {
+        form.querySelector('[name="name"]').value        = names[0];
+        form.querySelector('[name="other_names"]').value = names.slice(1).join(', ');
+      }
+    });
+  });
+}
+
 // ── Save ──────────────────────────────────────────────────────────────────────
 
 async function handleSave(e) {
@@ -417,8 +506,8 @@ async function handleSave(e) {
   const section = state.activeSection;
   const isNew = state.editMode === 'new';
 
-  if (section === 'herbs' && data.native_range !== undefined) {
-    data.native_range = data.native_range.split(',').map(s => s.trim()).filter(Boolean);
+  if (section === 'herbs' && data.other_names !== undefined) {
+    data.other_names = data.other_names.split(',').map(s => s.trim()).filter(Boolean);
   }
 
   let result;
@@ -462,8 +551,8 @@ async function handleSaveAndNext() {
   const data = Object.fromEntries(new FormData(form).entries());
   const section = state.activeSection;
 
-  if (section === 'herbs' && data.native_range !== undefined) {
-    data.native_range = data.native_range.split(',').map(s => s.trim()).filter(Boolean);
+  if (section === 'herbs' && data.other_names !== undefined) {
+    data.other_names = data.other_names.split(',').map(s => s.trim()).filter(Boolean);
   }
 
   let result;

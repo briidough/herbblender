@@ -62,14 +62,19 @@ function normEffect(e) {
 
 function normPlant(p) {
   return {
-    ID:           p._id.toString(),
-    NAME:         p.name,
-    GENUS:        p.genus,
-    SPECIES:      p.species,
-    FAMILY:       p.family,
-    DESCRIPTION:  p.description,
-    NATIVE_RANGE: p.nativeRange || [],
-    IMAGE_PATH:   firstImage('plants', p.name)
+    ID:                   p._id.toString(),
+    NAME:                 p.name,
+    GENUS:                p.genus,
+    SPECIES:              p.species,
+    FAMILY:               p.family,
+    DESCRIPTION:          p.description,
+    NATIVE_RANGE:         p.nativeRange || [],
+    OTHER_NAMES:          p.otherNames || [],
+    GBIF_USAGE_KEY:       p.gbifUsageKey || null,
+    TAXONOMY:             p.taxonomy || null,
+    COMMON_NAMES:         p.commonNames || [],
+    CURRENT_RANGE:        p.currentRange || [],
+    IMAGE_PATH:           firstImage('plants', p.name)
   };
 }
 
@@ -164,10 +169,18 @@ async function getHerbById(id) {
   return p ? normPlant(p) : null;
 }
 
-async function addHerb({ name, genus, species, family, description, nativeRange }) {
-  const result = await db().collection('plants').insertOne(
-    { name, genus, species, family, description, nativeRange: nativeRange || [] }
-  );
+async function addHerb({ name, genus, species, family, description, nativeRange, otherNames }) {
+  const result = await db().collection('plants').insertOne({
+    name, genus, species, family, description,
+    otherNames:          otherNames || [],
+    nativeRange:         nativeRange || [],
+    gbifUsageKey: null,
+    taxonomy:     null,
+    commonNames:  [],
+    currentRange: [],
+  });
+  const slug = slugify(name);
+  fs.mkdirSync(path.join(IMAGES_DIR, 'plants', slug), { recursive: true });
   return result.insertedId.toString();
 }
 
@@ -191,6 +204,16 @@ async function getTeasByHerb(herbId) {
   if (!plant) return [];
   const teas = await db().collection('teas').find({ genus: plant.genus, species: plant.species }).toArray();
   return teas.map(normTea);
+}
+
+async function getTeasWithoutHerb() {
+  const [plants, teas] = await Promise.all([
+    db().collection('plants').find({}, { projection: { genus: 1, family: 1, species: 1 } }).toArray(),
+    db().collection('teas').find({}).toArray(),
+  ]);
+  return teas
+    .filter(t => !plants.some(p => p.genus === t.genus && p.family === t.family && p.species === t.species))
+    .map(normTea);
 }
 
 // ── Effects (standalone CRUD) ─────────────────────────────────────────────────
@@ -251,7 +274,7 @@ module.exports = {
   getTeas, getTeaById, addTea, updateTea, deleteTea,
   getEffectsForTea, getTeaWithEffects, getBlend,
   linkEffectToTea, unlinkEffectFromTea,
-  getTeaPlant, getTeasByHerb,
+  getTeaPlant, getTeasByHerb, getTeasWithoutHerb,
   getHerbs, getHerbById, addHerb, updateHerb, deleteHerb,
   getEffects, getEffectById, addEffect, updateEffect, deleteEffect,
   getCompounds, getCompoundById,
