@@ -6,7 +6,8 @@ const path = require('path');
 const IMAGES_DIR = path.join(__dirname, 'images');
 
 function slugify(name) {
-  return name.toLowerCase().replace(/\s+/g, '');
+
+  return name.toLowerCase().replace(/\s+/g, '').replace('\'','');
 }
 
 function firstImage(subdir, name) {
