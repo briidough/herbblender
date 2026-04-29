@@ -408,6 +408,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('plant-search').addEventListener('input', renderPlantTable);
   document.getElementById('compound-type-filter').addEventListener('change', renderCompoundTable);
 
+  const sidebar = document.getElementById('sidebar');
+  const btn = document.getElementById('sidebar-toggle');
+
+  if (window.innerWidth < 768) {
+    sidebar.classList.add('collapsed');
+    btn.innerHTML = '&#8250;';
+    btn.setAttribute('aria-label', 'Expand sidebar');
+  }
+
+  btn.addEventListener('click', () => {
+    const collapsed = sidebar.classList.toggle('collapsed');
+    btn.innerHTML = collapsed ? '&#8250;' : '&#8249;';
+    btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+  });
+
   const available = await checkTeaBlenderAvailable();
   if (!available) {
     document.querySelector('[data-panel="tea-blender"]').remove();
