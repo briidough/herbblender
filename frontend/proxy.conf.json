@@ -6,5 +6,9 @@
   "/images": {
     "target": "http://localhost:3000",
     "secure": false
+  },
+  "/shared.css": {
+    "target": "http://localhost:3000",
+    "secure": false
   }
 }

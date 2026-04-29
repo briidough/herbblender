@@ -62,6 +62,7 @@ function normEffect(e) {
 
 function normPlant(p) {
   return {
+    ID:           p._id.toString(),
     NAME:         p.name,
     GENUS:        p.genus,
     SPECIES:      p.species,
@@ -69,6 +70,17 @@ function normPlant(p) {
     DESCRIPTION:  p.description,
     NATIVE_RANGE: p.nativeRange || [],
     IMAGE_PATH:   firstImage('plants', p.name)
+  };
+}
+
+function normCompound(c, type) {
+  return {
+    ID:           c._id.toString(),
+    TYPE:         COMPOUND_TYPE_LABEL[type] || type,
+    NAME:         c.name,
+    EFFECTS:      c.effects || [],
+    WIKILINK:     c.wikilink || null,
+    PSYCHOACTIVE: c.psychoactive || null
   };
 }
 
@@ -174,6 +186,13 @@ async function getTeaPlant(teaId) {
   return plant ? normPlant(plant) : null;
 }
 
+async function getTeasByHerb(herbId) {
+  const plant = await db().collection('plants').findOne({ _id: toId(herbId) });
+  if (!plant) return [];
+  const teas = await db().collection('teas').find({ genus: plant.genus, species: plant.species }).toArray();
+  return teas.map(normTea);
+}
+
 // ── Effects (standalone CRUD) ─────────────────────────────────────────────────
 
 async function getEffects() {
@@ -199,11 +218,41 @@ async function deleteEffect(id) {
   await db().collection('effects').deleteOne({ _id: toId(id) });
 }
 
+// ── Compounds ─────────────────────────────────────────────────────────────────
+
+const COMPOUND_COLLECTIONS = ['alkaloids', 'polyphenols', 'terpenes', 'otherCompounds'];
+
+const COMPOUND_TYPE_LABEL = {
+  alkaloids:      'alkaloid',
+  polyphenols:    'polyphenol',
+  terpenes:       'terpene',
+  otherCompounds: 'otherCompound',
+};
+
+async function getCompounds() {
+  const results = await Promise.all(
+    COMPOUND_COLLECTIONS.map(col =>
+      db().collection(col).find({}).sort({ name: 1 }).toArray()
+        .then(docs => docs.map(d => normCompound(d, col)))
+    )
+  );
+  return results.flat().sort((a, b) => a.TYPE.localeCompare(b.TYPE) || a.NAME.localeCompare(b.NAME));
+}
+
+async function getCompoundById(id) {
+  for (const col of COMPOUND_COLLECTIONS) {
+    const c = await db().collection(col).findOne({ _id: toId(id) });
+    if (c) return normCompound(c, col);
+  }
+  return null;
+}
+
 module.exports = {
   getTeas, getTeaById, addTea, updateTea, deleteTea,
   getEffectsForTea, getTeaWithEffects, getBlend,
   linkEffectToTea, unlinkEffectFromTea,
-  getTeaPlant,
+  getTeaPlant, getTeasByHerb,
   getHerbs, getHerbById, addHerb, updateHerb, deleteHerb,
   getEffects, getEffectById, addEffect, updateEffect, deleteEffect,
+  getCompounds, getCompoundById,
 };

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tea Browser</title>
+  <link rel="stylesheet" href="/shared.css">
+  <link rel="stylesheet" href="/teabrowser/app.css">
+</head>
+<body>
+  <div id="app">
+    <nav id="sidebar">
+      <div class="sidebar-title">Tea Browser</div>
+      <ul class="sidebar-nav">
+        <li class="nav-item active" data-panel="tea-blender">Tea Blender</li>
+        <li class="nav-item" data-panel="tea-dict">Tea Dictionary</li>
+        <li class="nav-item" data-panel="plant-dict">Plant Dictionary</li>
+        <li class="nav-item" data-panel="compound-dict">Compounds Dictionary</li>
+      </ul>
+      <div class="sidebar-footer" id="sidebar-footer">HerbBlender</div>
+    </nav>
+
+    <main id="content">
+
+      <!-- Tea Blender panel -->
+      <div id="panel-tea-blender" class="panel active">
+        <iframe id="tea-blender-iframe" src="http://localhost:42727" frameborder="0" title="Tea Blender"></iframe>
+      </div>
+
+      <!-- Tea Dictionary panel -->
+      <div id="panel-tea-dict" class="panel">
+        <div class="dict-filter-bar">
+          <select id="tea-effect-filter" class="dict-filter-select">
+            <option value="">All effects</option>
+          </select>
+        </div>
+        <div class="panel-table-wrap">
+          <table class="dict-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Oxidation</th>
+                <th>Fermentation</th>
+                <th>Effects</th>
+              </tr>
+            </thead>
+            <tbody id="tea-tbody">
+              <tr><td colspan="4" class="panel-loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Plant Dictionary panel -->
+      <div id="panel-plant-dict" class="panel">
+        <div class="dict-filter-bar">
+          <input type="text" id="plant-search" class="dict-filter-input" placeholder="Search by name, genus or species…">
+        </div>
+        <div class="panel-table-wrap">
+          <table class="dict-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Family</th>
+                <th>Genus</th>
+                <th>Species</th>
+                <th>Teas</th>
+              </tr>
+            </thead>
+            <tbody id="plant-tbody">
+              <tr><td colspan="5" class="panel-loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Compounds Dictionary panel -->
+      <div id="panel-compound-dict" class="panel">
+        <div class="dict-filter-bar">
+          <select id="compound-type-filter" class="dict-filter-select">
+            <option value="">All types</option>
+            <option value="alkaloid">Alkaloid</option>
+            <option value="polyphenol">Polyphenol</option>
+            <option value="terpene">Terpene</option>
+            <option value="otherCompound">Other Compound</option>
+          </select>
+        </div>
+        <div class="panel-table-wrap">
+          <table class="dict-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Effects</th>
+                <th>Wiki</th>
+              </tr>
+            </thead>
+            <tbody id="compound-tbody">
+              <tr><td colspan="3" class="panel-loading">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="overlay-root"></div>
+
+  <script src="/teabrowser/app.js"></script>
+</body>
+</html>
