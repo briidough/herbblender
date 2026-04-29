@@ -386,7 +386,7 @@ function esc(str) {
 
 async function checkTeaBlenderAvailable() {
   try {
-    await fetch('http://localhost:42727', {
+    await fetch(`http://${window.location.hostname}:42727`, {
       method: 'HEAD',
       mode: 'no-cors',
       signal: AbortSignal.timeout(2000),
@@ -413,5 +413,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('[data-panel="tea-blender"]').remove();
     document.getElementById('panel-tea-blender').classList.remove('active');
     showPanel('tea-dict');
+  } else {
+    document.getElementById('tea-blender-iframe').src = `http://${window.location.hostname}:42727`;
   }
 });
