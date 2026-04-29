@@ -1,5 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { TeaService, Tea, Blend, Effect, Plant } from './tea.service';
 
 const EFFECT_MOOD_MAP: Record<string, string> = {
@@ -44,15 +46,17 @@ const EFFECT_MOOD_MAP: Record<string, string> = {
 export class App implements OnInit {
   private teaService = inject(TeaService);
 
-  allTeas = signal<Tea[]>([]);
+  readonly slots = [0, 1, 2];
+
+  allTeas    = signal<Tea[]>([]);
   selectedTeas = signal<Tea[]>([]);
-  blend = signal<Blend | null>(null);
+  blend      = signal<Blend | null>(null);
 
   showSelectorOverlay = signal(false);
-  showDetailOverlay = signal(false);
-  detailTea = signal<Tea | null>(null);
+  showDetailOverlay   = signal(false);
+  detailTea    = signal<Tea | null>(null);
   detailEffects = signal<Effect[]>([]);
-  detailPlant = signal<Plant | null>(null);
+  detailPlant  = signal<Plant | null>(null);
   blendLoading = signal(false);
   detailLoading = signal(false);
   selectedEffectFilter = signal<string>('');
@@ -61,10 +65,15 @@ export class App implements OnInit {
     [...new Set(this.allTeas().flatMap(t => t.EFFECT_NAMES))].sort()
   );
 
+  currentBlendEffectNames = computed<string[]>(() =>
+    [...new Set((this.blend()?.effects ?? []).map(e => e.NAME))].sort()
+  );
+
   filteredTeas = computed<Tea[]>(() => {
     const filter = this.selectedEffectFilter();
-    if (!filter) return this.allTeas();
-    return this.allTeas().filter(t => t.EFFECT_NAMES.includes(filter));
+    return filter
+      ? this.allTeas().filter(t => t.EFFECT_NAMES.includes(filter))
+      : this.allTeas();
   });
 
   effectCounts = computed(() => {
@@ -77,6 +86,29 @@ export class App implements OnInit {
       }
     }
     return counts;
+  });
+
+  blendGroups = computed(() => {
+    const b = this.blend();
+    if (!b) return [];
+    const counts = this.effectCounts();
+    const groups: { mood: string; label: string; effects: Effect[] }[] = [
+      { mood: 'effect-energizing', label: 'Energizing', effects: [] },
+      { mood: 'effect-calming',    label: 'Calming',    effects: [] },
+      { mood: 'effect-protective', label: 'Protective', effects: [] },
+      { mood: 'effect-supportive', label: 'Supportive', effects: [] },
+    ];
+    for (const eff of b.effects) {
+      const grp = groups.find(g => g.mood === this.moodClass(eff.NAME)) ?? groups[3];
+      grp.effects.push(eff);
+    }
+    for (const grp of groups) {
+      grp.effects.sort((a, z) => {
+        const diff = (counts.get(z.ID) ?? 0) - (counts.get(a.ID) ?? 0);
+        return diff !== 0 ? diff : a.NAME.localeCompare(z.NAME);
+      });
+    }
+    return groups.filter(g => g.effects.length > 0);
   });
 
   ngOnInit() {
@@ -114,18 +146,23 @@ export class App implements OnInit {
   }
 
   openDetailOverlay(tea: Tea, event: MouseEvent) {
-    event.stopPropagation(); /* ope forgot commit comment*/
+    event.stopPropagation();
     this.detailTea.set(tea);
     this.detailEffects.set([]);
     this.detailPlant.set(null);
     this.detailLoading.set(true);
     this.showDetailOverlay.set(true);
-    this.teaService.getBlend([tea.ID]).subscribe(blend => {
-      this.detailEffects.set(blend.effects);
-      this.detailLoading.set(false);
-    });
-    this.teaService.getTeaPlant(tea.ID).subscribe(plant => {
-      this.detailPlant.set(plant);
+
+    forkJoin({
+      blend: this.teaService.getBlend([tea.ID]),
+      plant: this.teaService.getTeaPlant(tea.ID).pipe(catchError(() => of(null))),
+    }).subscribe({
+      next: ({ blend, plant }) => {
+        this.detailEffects.set(blend.effects);
+        this.detailPlant.set(plant);
+        this.detailLoading.set(false);
+      },
+      error: () => this.detailLoading.set(false),
     });
   }
 

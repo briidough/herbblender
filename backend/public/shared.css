@@ -1,3 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+/* ── Design tokens ───────────────────────────────────────────────────────────── */
+
+:root {
+  --font-body: 'Lora', Georgia, serif;
+  color-scheme: light dark;
+
+  /* Light mode (default) — warm parchment garden */
+  --color-bg:               #f5f2ec;
+  --color-surface:          #fefcf6;
+  --color-subtle:           #eef6ee;
+  --color-border-strong:    #bdd4bd;
+  --color-border:           #d8ecda;
+  --color-border-light:     #ebf4eb;
+  --color-text:             #2b2418;
+  --color-text-mid:         #526050;
+  --color-text-muted:       #86987e;
+  --color-heading:          #2a4528;
+  --color-accent:           #4c8c4c;
+  --color-accent-hover:     #387038;
+  --color-sidebar-bg:       #2a4528;
+  --color-on-sidebar:       #b4d2b4;
+  --color-on-sidebar-active:#ffffff;
+  --color-danger:           #b03020;
+  --color-wiki-bg:          #edf2fc;
+  --color-wiki-border:      #a0b0dc;
+  --color-wiki-text:        #2a3868;
+  --color-wiki-hover:       #d8e4fc;
+  --shadow-overlay:         0 8px 32px rgba(0,0,0,0.18);
+  --chip-energizing-bg:     #fff5e0;
+  --chip-energizing-text:   #7a4a00;
+  --chip-energizing-border: #e8b84a;
+  --chip-calming-bg:        #f0ecfb;
+  --chip-calming-text:      #4a3575;
+  --chip-calming-border:    #c4b0f0;
+  --chip-protective-bg:     #e8f5e8;
+  --chip-protective-text:   #2e5e2e;
+  --chip-protective-border: #8ecc8e;
+  --chip-supportive-bg:     #e4f4f4;
+  --chip-supportive-text:   #1a5c68;
+  --chip-supportive-border: #7ec4c4;
+}
+
+/* Dark mode via OS preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-bg:               #0c1810;
+    --color-surface:          #132018;
+    --color-subtle:           #192c1e;
+    --color-border-strong:    #2c4830;
+    --color-border:           #1e3824;
+    --color-border-light:     #182e1c;
+    --color-text:             #e4ede0;
+    --color-text-mid:         #96b490;
+    --color-text-muted:       #526850;
+    --color-heading:          #b8d4b0;
+    --color-accent:           #70b870;
+    --color-accent-hover:     #90d890;
+    --color-sidebar-bg:       #070e09;
+    --color-on-sidebar:       #a0c4a0;
+    --color-on-sidebar-active:#e8f4e8;
+    --color-danger:           #e05040;
+    --color-wiki-bg:          #141e30;
+    --color-wiki-border:      #2a3860;
+    --color-wiki-text:        #90a8e0;
+    --color-wiki-hover:       #1c2840;
+    --shadow-overlay:         0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px var(--color-border);
+    --chip-energizing-bg:     #281c08;
+    --chip-energizing-text:   #e8c06a;
+    --chip-energizing-border: #604010;
+    --chip-calming-bg:        #18142a;
+    --chip-calming-text:      #c0a8f0;
+    --chip-calming-border:    #4a3870;
+    --chip-protective-bg:     #0e1e0e;
+    --chip-protective-text:   #86d886;
+    --chip-protective-border: #285828;
+    --chip-supportive-bg:     #0a1e1e;
+    --chip-supportive-text:   #72c8d8;
+    --chip-supportive-border: #185868;
+  }
+}
+
+/* Manual override: dark */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg:               #0c1810;
+  --color-surface:          #132018;
+  --color-subtle:           #192c1e;
+  --color-border-strong:    #2c4830;
+  --color-border:           #1e3824;
+  --color-border-light:     #182e1c;
+  --color-text:             #e4ede0;
+  --color-text-mid:         #96b490;
+  --color-text-muted:       #526850;
+  --color-heading:          #b8d4b0;
+  --color-accent:           #70b870;
+  --color-accent-hover:     #90d890;
+  --color-sidebar-bg:       #070e09;
+  --color-on-sidebar:       #a0c4a0;
+  --color-on-sidebar-active:#e8f4e8;
+  --color-danger:           #e05040;
+  --color-wiki-bg:          #141e30;
+  --color-wiki-border:      #2a3860;
+  --color-wiki-text:        #90a8e0;
+  --color-wiki-hover:       #1c2840;
+  --shadow-overlay:         0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px var(--color-border);
+  --chip-energizing-bg:     #281c08;
+  --chip-energizing-text:   #e8c06a;
+  --chip-energizing-border: #604010;
+  --chip-calming-bg:        #18142a;
+  --chip-calming-text:      #c0a8f0;
+  --chip-calming-border:    #4a3870;
+  --chip-protective-bg:     #0e1e0e;
+  --chip-protective-text:   #86d886;
+  --chip-protective-border: #285828;
+  --chip-supportive-bg:     #0a1e1e;
+  --chip-supportive-text:   #72c8d8;
+  --chip-supportive-border: #185868;
+}
+
+/* Manual override: light (wins over OS dark) */
+html[data-theme="light"] {
+  color-scheme: light;
+  --color-bg:               #f5f2ec;
+  --color-surface:          #fefcf6;
+  --color-subtle:           #eef6ee;
+  --color-border-strong:    #bdd4bd;
+  --color-border:           #d8ecda;
+  --color-border-light:     #ebf4eb;
+  --color-text:             #2b2418;
+  --color-text-mid:         #526050;
+  --color-text-muted:       #86987e;
+  --color-heading:          #2a4528;
+  --color-accent:           #4c8c4c;
+  --color-accent-hover:     #387038;
+  --color-sidebar-bg:       #2a4528;
+  --color-on-sidebar:       #b4d2b4;
+  --color-on-sidebar-active:#ffffff;
+  --color-danger:           #b03020;
+  --color-wiki-bg:          #edf2fc;
+  --color-wiki-border:      #a0b0dc;
+  --color-wiki-text:        #2a3868;
+  --color-wiki-hover:       #d8e4fc;
+  --shadow-overlay:         0 8px 32px rgba(0,0,0,0.18);
+  --chip-energizing-bg:     #fff5e0;
+  --chip-energizing-text:   #7a4a00;
+  --chip-energizing-border: #e8b84a;
+  --chip-calming-bg:        #f0ecfb;
+  --chip-calming-text:      #4a3575;
+  --chip-calming-border:    #c4b0f0;
+  --chip-protective-bg:     #e8f5e8;
+  --chip-protective-text:   #2e5e2e;
+  --chip-protective-border: #8ecc8e;
+  --chip-supportive-bg:     #e4f4f4;
+  --chip-supportive-text:   #1a5c68;
+  --chip-supportive-border: #7ec4c4;
+}
+
 /* ── Overlay backdrop ──────────────────────────────────────────────────────── */
 
 .overlay-backdrop {
@@ -17,13 +177,13 @@
 /* ── Overlay panel ─────────────────────────────────────────────────────────── */
 
 .overlay-panel {
-  background: #fff;
+  background: var(--color-surface);
   border-radius: 12px;
   width: min(540px, 92vw);
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: var(--shadow-overlay);
   overflow: hidden;
 }
 
@@ -32,27 +192,27 @@
   align-items: center;
   justify-content: space-between;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid #e0ede0;
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
 }
 
 .overlay-header h2 {
   margin: 0;
   font-size: 1.2rem;
-  color: #2d4a2d;
+  color: var(--color-heading);
 }
 
 .overlay-close {
   background: none;
   border: none;
   font-size: 1.1rem;
-  color: #779977;
+  color: var(--color-text-muted);
   cursor: pointer;
   padding: 4px 8px;
 }
 
 .overlay-close:hover {
-  color: #2d4a2d;
+  color: var(--color-heading);
 }
 
 /* ── Detail body ───────────────────────────────────────────────────────────── */
@@ -66,7 +226,7 @@
 .overlay-full-desc {
   margin-top: 16px;
   font-size: 0.95rem;
-  color: #556655;
+  color: var(--color-text-mid);
   line-height: 1.6;
 }
 
@@ -87,27 +247,27 @@
 }
 
 .effect-energizing {
-  background: #fff4e0;
-  color: #7a4f00;
-  border: 1px solid #f5c96a;
+  background: var(--chip-energizing-bg);
+  color: var(--chip-energizing-text);
+  border: 1px solid var(--chip-energizing-border);
 }
 
 .effect-calming {
-  background: #f0ecfb;
-  color: #4a3575;
-  border: 1px solid #c4b0f0;
+  background: var(--chip-calming-bg);
+  color: var(--chip-calming-text);
+  border: 1px solid var(--chip-calming-border);
 }
 
 .effect-protective {
-  background: #e8f5e8;
-  color: #2e5e2e;
-  border: 1px solid #90c890;
+  background: var(--chip-protective-bg);
+  color: var(--chip-protective-text);
+  border: 1px solid var(--chip-protective-border);
 }
 
 .effect-supportive {
-  background: #e5f5f5;
-  color: #1a5f6a;
-  border: 1px solid #82caca;
+  background: var(--chip-supportive-bg);
+  color: var(--chip-supportive-text);
+  border: 1px solid var(--chip-supportive-border);
 }
 
 .effect-shared-2 {
@@ -133,7 +293,7 @@
 .tea-img-placeholder--large {
   width: 120px;
   height: 120px;
-  background: #c8ddc8;
+  background: var(--color-border-strong);
   border-radius: 10px;
   margin: 0 auto 16px;
 }
@@ -151,7 +311,7 @@
 
 .herb-info-section {
   margin-top: 20px;
-  border-top: 1px solid #e0e8e0;
+  border-top: 1px solid var(--color-border);
   padding-top: 16px;
 }
 
@@ -160,7 +320,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #5a7a5a;
+  color: var(--color-text-mid);
   margin: 0 0 8px;
 }
 
@@ -172,7 +332,7 @@
 
 .herb-info-classification {
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-mid);
   margin: 0 0 12px;
 }
 
@@ -187,7 +347,7 @@
 
 .herb-info-desc {
   font-size: 14px;
-  color: #444;
+  color: var(--color-text);
   margin: 0;
 }
 
@@ -195,7 +355,7 @@
 
 .dict-filter-bar {
   padding: 10px 16px;
-  border-bottom: 1px solid #e0ede0;
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -204,32 +364,32 @@
 
 .dict-filter-select {
   padding: 5px 10px;
-  border: 1px solid #b0c8b0;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
   font-size: 0.85rem;
-  color: #2d4a2d;
-  background: #f5fbf5;
+  color: var(--color-text);
+  background: var(--color-subtle);
   cursor: pointer;
 }
 
 .dict-filter-select:focus {
   outline: none;
-  border-color: #5a9e5a;
+  border-color: var(--color-accent);
 }
 
 .dict-filter-input {
   padding: 5px 10px;
-  border: 1px solid #b0c8b0;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
   font-size: 0.85rem;
-  color: #2d4a2d;
-  background: #f5fbf5;
+  color: var(--color-text);
+  background: var(--color-subtle);
   flex: 1;
 }
 
 .dict-filter-input:focus {
   outline: none;
-  border-color: #5a9e5a;
+  border-color: var(--color-accent);
 }
 
 .dict-table {
@@ -241,20 +401,20 @@
 .dict-table th {
   text-align: left;
   padding: 10px 14px;
-  background: #f0f7f0;
-  color: #3a5a3a;
+  background: var(--color-subtle);
+  color: var(--color-text-mid);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 2px solid #d4e2d4;
+  border-bottom: 2px solid var(--color-border);
   position: sticky;
   top: 0;
 }
 
 .dict-table td {
   padding: 10px 14px;
-  border-bottom: 1px solid #eef3ee;
-  color: #333;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text);
   vertical-align: top;
 }
 
@@ -268,7 +428,7 @@
 }
 
 .dict-table tbody tr:hover {
-  background: #f0f7f0;
+  background: var(--color-subtle);
 }
 
 /* ── Shared buttons ────────────────────────────────────────────────────────── */
@@ -276,9 +436,9 @@
 .btn {
   padding: 5px 12px;
   border-radius: 6px;
-  border: 1px solid #b0c8b0;
-  background: #f5fbf5;
-  color: #2d4a2d;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-subtle);
+  color: var(--color-text);
   font-size: 0.82rem;
   cursor: pointer;
   text-decoration: none;
@@ -287,24 +447,24 @@
 }
 
 .btn:hover {
-  background: #e0f0e0;
+  background: var(--color-border);
 }
 
 .btn-wiki {
-  background: #e8f0ff;
-  border-color: #a0b0e0;
-  color: #2d3a6a;
+  background: var(--color-wiki-bg);
+  border-color: var(--color-wiki-border);
+  color: var(--color-wiki-text);
 }
 
 .btn-wiki:hover:not(:disabled):not([data-empty]) {
-  background: #d0e0ff;
+  background: var(--color-wiki-hover);
 }
 
 .btn-wiki:disabled,
 .btn-wiki[data-empty] {
-  background: #f0f0f0;
-  border-color: #ccc;
-  color: #aaa;
+  background: var(--color-subtle);
+  border-color: var(--color-border-strong);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
@@ -312,14 +472,14 @@
 
 .plant-detail-classification {
   font-size: 0.9rem;
-  color: #666;
+  color: var(--color-text-mid);
   font-style: italic;
   margin: 0 0 6px;
 }
 
 .plant-detail-family {
   font-size: 0.85rem;
-  color: #5a7a5a;
+  color: var(--color-text-mid);
   margin: 0 0 12px;
 }
 
@@ -334,7 +494,7 @@
 
 .plant-detail-teas {
   margin-top: 16px;
-  border-top: 1px solid #e0e8e0;
+  border-top: 1px solid var(--color-border);
   padding-top: 12px;
 }
 
@@ -342,7 +502,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #5a7a5a;
+  color: var(--color-text-mid);
   margin: 0 0 8px;
 }
 
@@ -350,9 +510,9 @@
   display: inline-block;
   padding: 4px 10px;
   border-radius: 12px;
-  background: #e8f5e8;
-  color: #2e5e2e;
-  border: 1px solid #90c890;
+  background: var(--chip-protective-bg);
+  color: var(--chip-protective-text);
+  border: 1px solid var(--chip-protective-border);
   font-size: 0.82rem;
   margin: 0 4px 4px 0;
 }
@@ -363,9 +523,9 @@
   display: inline-block;
   padding: 3px 10px;
   border-radius: 12px;
-  background: #f0ecfb;
-  color: #4a3575;
-  border: 1px solid #c4b0f0;
+  background: var(--chip-calming-bg);
+  color: var(--chip-calming-text);
+  border: 1px solid var(--chip-calming-border);
   font-size: 0.82rem;
   margin-bottom: 12px;
 }
@@ -384,7 +544,7 @@
 /* ── Misc ──────────────────────────────────────────────────────────────────── */
 
 .empty-msg {
-  color: #8a9a8a;
+  color: var(--color-text-muted);
   font-style: italic;
   margin: 0;
   padding: 16px 0;

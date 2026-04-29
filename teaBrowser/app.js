@@ -382,6 +382,13 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function updateThemeToggle(theme) {
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = theme === 'dark' ? '✶ Light' : '☽ Dark';
+}
+
 // ── Tea Blender availability check ────────────────────────────────────────────
 
 async function checkTeaBlenderAvailable() {
@@ -400,6 +407,20 @@ async function checkTeaBlenderAvailable() {
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // ── Theme init ──────────────────────────────────────────────────────────────
+  const savedTheme = localStorage.getItem('theme');
+  const osDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const initTheme = savedTheme || (osDark ? 'dark' : 'light');
+  document.documentElement.dataset.theme = initTheme;
+  updateThemeToggle(initTheme);
+
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    updateThemeToggle(next);
+  });
+
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => showPanel(item.dataset.panel));
   });

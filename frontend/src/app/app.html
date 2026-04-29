@@ -1,41 +1,67 @@
 <div class="app">
-  <header>
+  <header class="app-header">
     <h1>Tea Blender</h1>
+    <p class="app-subtitle">Select up to three teas and discover their combined effects</p>
   </header>
 
-  <section class="selected-row">
-    @for (tea of selectedTeas(); track tea.ID; let i = $index) {
-      <div class="selected-card" (click)="openDetailOverlay(tea, $event)">
-        <div class="selected-card-top">
-          <span class="selected-card-name">{{ tea.NAME }}</span>
-          <button class="selected-card-remove" (click)="removeTea(tea); $event.stopPropagation()" title="Remove">&#x2715;</button>
+  <section class="tea-tray">
+    @for (tea of selectedTeas(); track tea.ID) {
+      <div class="tea-card tea-card--filled" (click)="openDetailOverlay(tea, $event)">
+        <div class="tea-card-image-wrap">
+          @if (tea.IMAGE_PATH) {
+            <img class="tea-card-img" [src]="'/images/' + tea.IMAGE_PATH" alt="{{ tea.NAME }}" />
+          } @else {
+            <div class="tea-card-img-placeholder"></div>
+          }
+          <button class="tea-card-remove" (click)="removeTea(tea); $event.stopPropagation()" title="Remove">&#x2715;</button>
         </div>
-        @if (tea.IMAGE_PATH) {
-          <img class="selected-card-img" [src]="'/images/' + tea.IMAGE_PATH" alt="{{ tea.NAME }}" />
-        }
+        <div class="tea-card-body">
+          <span class="tea-card-name">{{ tea.NAME }}</span>
+        </div>
       </div>
     }
-    <button
-      class="add-tea-btn"
-      [disabled]="selectedTeas().length >= 3"
-      (click)="openSelectorOverlay()"
-      title="Add tea">+</button>
+    @if (selectedTeas().length < 3) {
+      <div class="tea-card tea-card--empty" (click)="openSelectorOverlay()">
+        <div class="tea-card-ghost-content">
+          <span class="tea-card-plus">+</span>
+          <span class="tea-card-add-label">Add Tea</span>
+        </div>
+      </div>
+    }
   </section>
 
   @if (selectedTeas().length > 0) {
     <section class="effects-section">
-      <h3>{{ blendLoading() ? 'Blending...' : (selectedTeas().length > 1 ? 'Combined Effects' : 'Effects') }}</h3>
-      @if (blendLoading()) {
-        <div class="blend-spinner"></div>
-      } @else if (blend(); as b) {
-        <div class="effects-grid">
-          @for (effect of b.effects; track effect.ID) {
-            <div class="effect-chip" [class]="moodClass(effect.NAME)" [class.effect-shared-2]="sharedClass(effect.ID) === 'effect-shared-2'" [class.effect-shared-3]="sharedClass(effect.ID) === 'effect-shared-3'" [title]="effect.DESCRIPTION">
-              {{ effect.NAME }}
-            </div>
-          } @empty {
-            <p class="empty-msg">No effects recorded for this blend.</p>
-          }
+      <div class="effects-heading" [class.is-blending]="blendLoading()">
+        {{ blendLoading() ? 'Blending…' : 'Combined Effects' }}
+      </div>
+      @if (blend()) {
+        <div class="effects-grid effects-grid--grouped" [class.is-blending]="blendLoading()">
+          <div class="effect-chips-collection">
+            @for (group of blendGroups(); track group.mood) {
+              @for (effect of group.effects; track effect.ID) {
+                <div
+                  class="effect-chip"
+                  [class]="moodClass(effect.NAME)"
+                  [class.effect-shared-2]="sharedClass(effect.ID) === 'effect-shared-2'"
+                  [class.effect-shared-3]="sharedClass(effect.ID) === 'effect-shared-3'"
+                  [title]="effect.DESCRIPTION">
+                  {{ effect.NAME }}
+                </div>
+              }
+            } @empty {
+              <p class="empty-msg">No effects recorded for this blend.</p>
+            }
+          </div>
+          <div class="effect-category-labels">
+            @for (group of blendGroups(); track group.mood) {
+              <span class="effect-group-label" [class]="group.mood + '-label'">{{ group.label }}</span>
+            }
+          </div>
+        </div>
+      } @else if (blendLoading()) {
+        <div class="blend-spinner-row">
+          <div class="blend-spinner"></div>
         </div>
       }
     </section>
@@ -57,6 +83,14 @@
             <option [value]="name">{{ name }}</option>
           }
         </select>
+        @if (selectedTeas().length > 0) {
+          <select [value]="selectedEffectFilter()" (change)="selectedEffectFilter.set($any($event.target).value)">
+            <option value="">Current effects</option>
+            @for (name of currentBlendEffectNames(); track name) {
+              <option [value]="name">{{ name }}</option>
+            }
+          </select>
+        }
       </div>
       <div class="overlay-list">
         @for (tea of filteredTeas(); track tea.ID) {
@@ -70,7 +104,7 @@
               <div class="overlay-tea-name">{{ tea.NAME }}</div>
               <div class="overlay-tea-desc">{{ tea.DESCRIPTION | slice:0:200 }}</div>
             </div>
-            <button class="overlay-detail-btn" (click)="openDetailOverlay(tea, $event)" title="See details">...</button>
+            <button class="overlay-detail-btn" (click)="openDetailOverlay(tea, $event)" title="See details">···</button>
           </div>
         } @empty {
           <p class="empty-msg">No teas available.</p>
@@ -80,7 +114,7 @@
   </div>
 }
 
-<!-- Description Detail Overlay -->
+<!-- Detail Overlay -->
 @if (showDetailOverlay()) {
   <div class="overlay-backdrop overlay-backdrop--detail" (click)="onDetailBackdropClick($event)">
     <div class="overlay-panel">
@@ -100,7 +134,7 @@
           }
         </div>
         @if (detailLoading()) {
-          <p class="empty-msg">Loading effects…</p>
+          <p class="empty-msg">Loading…</p>
         } @else {
           <div class="effects-grid">
             @for (effect of detailEffects(); track effect.ID) {
