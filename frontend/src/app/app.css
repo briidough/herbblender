@@ -1,172 +1,459 @@
-/* ── Layout ──────────────────────────────────────── */
+/* ── App layout ──────────────────────────────────── */
+
 .app {
   max-width: 860px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 28px 20px 32px;
   display: flex;
-  align-items: center;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
 }
 
-header h1 {
-  margin: 0 0 4px;
+.app-header {
+  text-align: center;
+}
+
+.app-header h1 {
+  margin: 0 0 6px;
   font-size: 2rem;
-  color: #3a5a3a;
+  font-weight: 600;
+  color: var(--color-heading);
+  letter-spacing: 0.4px;
+}
+
+.app-subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ── Tea tray ────────────────────────────────────── */
+
+.tea-tray {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* ── Tea card base ───────────────────────────────── */
+
+.tea-card {
+  width: min(176px, calc(50% - 8px));
+  flex: 0 0 min(176px, calc(50% - 8px));
+  height: 192px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+/* ── Filled card ─────────────────────────────────── */
+
+.tea-card--filled {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.tea-card--filled:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.tea-card-image-wrap {
+  flex: 0 0 128px;
+  position: relative;
+  overflow: hidden;
+  background: var(--color-subtle);
+}
+
+.tea-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tea-card-img-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-subtle);
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      var(--color-border) 0,
+      var(--color-border) 1px,
+      transparent 0,
+      transparent 50%
+    );
+  background-size: 18px 18px;
+}
+
+.tea-card-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.48);
+  color: #fff;
+  border: none;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: background 0.12s ease;
+}
+
+.tea-card-remove:hover {
+  background: rgba(160,40,20,0.85);
+}
+
+.tea-card-body {
+  flex: 1;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+}
+
+.tea-card-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tea-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tea-mini-chip {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tea-mini-chip.effect-energizing {
+  background: var(--chip-energizing-bg);
+  color: var(--chip-energizing-text);
+  border: 1px solid var(--chip-energizing-border);
+}
+
+.tea-mini-chip.effect-calming {
+  background: var(--chip-calming-bg);
+  color: var(--chip-calming-text);
+  border: 1px solid var(--chip-calming-border);
+}
+
+.tea-mini-chip.effect-protective {
+  background: var(--chip-protective-bg);
+  color: var(--chip-protective-text);
+  border: 1px solid var(--chip-protective-border);
+}
+
+.tea-mini-chip.effect-supportive {
+  background: var(--chip-supportive-bg);
+  color: var(--chip-supportive-text);
+  border: 1px solid var(--chip-supportive-border);
+}
+
+/* ── Empty card ──────────────────────────────────── */
+
+.tea-card--empty {
+  border: 2px dashed var(--color-border-strong);
+  background: transparent;
+  align-items: center;
+  justify-content: center;
+}
+
+.tea-card--empty:hover {
+  background: var(--color-subtle);
+  border-color: var(--color-accent);
+}
+
+.tea-card-ghost-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-text-muted);
+  transition: color 0.15s;
+}
+
+.tea-card--empty:hover .tea-card-ghost-content {
+  color: var(--color-accent);
+}
+
+.tea-card-plus {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.tea-card-add-label {
+  font-size: 0.8rem;
   letter-spacing: 0.5px;
 }
 
-/* ── Selected row ────────────────────────────────── */
-.selected-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  min-height: 64px;
+/* ── Effects section ─────────────────────────────── */
+
+.effects-section {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px 20px 22px;
+  background: var(--color-surface);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-.selected-card {
+.effects-heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+}
+
+/* ── Effect groups ───────────────────────────────── */
+
+.effects-grid--grouped {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: 1px solid #b0c8b0;
-  border-radius: 8px;
-  background: #f5fbf5;
-  cursor: pointer;
+  gap: 12px;
 }
 
-.selected-card-top {
+.effect-chips-collection {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
-.selected-card-img {
-  width: 92px;
-  height: 92px;
-  border-radius: 6px;
-  object-fit: cover;
+.effect-category-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
 }
 
-.selected-card-name {
-  font-weight: 600;
-  color: #2d4a2d;
-  max-width: 12ch;
-  overflow-wrap: break-word;
+.effect-group-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.3px;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.selected-card-remove {
-  background: none;
-  border: none;
-  color: #c0392b;
-  cursor: pointer;
-  font-size: 0.9rem;
-  padding: 0 2px;
-  line-height: 1;
-}
-
-.selected-card-remove:hover {
-  color: #8b0000;
-}
-
-.add-tea-btn {
-  width: 44px;
-  height: 44px;
+.effect-group-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #5a9e5a;
-  color: #fff;
-  border: none;
-  font-size: 1.6rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.15s;
   flex-shrink: 0;
 }
 
-.add-tea-btn:hover:not(:disabled) {
-  background: #3a7a3a;
+.effect-energizing-label::before { background: var(--chip-energizing-border); }
+.effect-calming-label::before    { background: var(--chip-calming-border); }
+.effect-protective-label::before { background: var(--chip-protective-border); }
+.effect-supportive-label::before { background: var(--chip-supportive-border); }
+
+/* Hide labels while blending */
+.effects-grid--grouped.is-blending .effect-group-label {
+  opacity: 0;
 }
 
-.add-tea-btn:disabled {
-  background: #b0c8b0;
-  cursor: not-allowed;
+/* Labels slide in staggered after blend settles */
+.effects-grid--grouped:not(.is-blending) .effect-group-label {
+  animation: label-slide-in 0.35s ease-out both;
 }
 
-/* ── Effects section ─────────────────────────────── */
-.effects-section {
-  border: 1px solid #d4e2d4;
-  border-radius: 10px;
-  padding: 20px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+.effects-grid--grouped:not(.is-blending) .effect-group-label:nth-child(2) { animation-delay: 0.06s; }
+.effects-grid--grouped:not(.is-blending) .effect-group-label:nth-child(3) { animation-delay: 0.12s; }
+.effects-grid--grouped:not(.is-blending) .effect-group-label:nth-child(4) { animation-delay: 0.18s; }
+
+@keyframes label-slide-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.effects-section h3 {
-  margin: 0 0 12px;
-  font-size: 1rem;
-  color: #3a5a3a;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
+/* ── Blending animation ───────────────────────────── */
+
+.effects-heading.is-blending::after {
+  content: '⊛';
+  display: inline-block;
+  animation: heading-spin 0.65s linear infinite;
+  margin-left: 6px;
+  opacity: 0.55;
+}
+
+@keyframes heading-spin {
+  to { transform: rotate(360deg); }
+}
+
+.effects-grid.is-blending {
+  animation: blender-vortex 1.1s ease-in-out infinite;
+}
+
+@keyframes blender-vortex {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25%       { transform: rotate(0.5deg) scale(0.996); }
+  55%       { transform: rotate(-0.6deg) scale(1.002); }
+  80%       { transform: rotate(0.4deg) scale(0.998); }
+}
+
+.effects-grid.is-blending .effect-chip:nth-child(3n + 1) {
+  animation: chip-orbit-a 0.92s ease-in-out infinite;
+}
+
+.effects-grid.is-blending .effect-chip:nth-child(3n + 2) {
+  animation: chip-orbit-b 0.92s ease-in-out infinite;
+  animation-delay: -0.31s;
+}
+
+.effects-grid.is-blending .effect-chip:nth-child(3n) {
+  animation: chip-orbit-c 1s ease-in-out infinite;
+  animation-delay: -0.63s;
+}
+
+@keyframes chip-orbit-a {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  30%       { transform: translateY(-7px) rotate(14deg); opacity: 0.6; }
+  70%       { transform: translateY(4px) rotate(-9deg); opacity: 0.75; }
+}
+
+@keyframes chip-orbit-b {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  30%       { transform: translateY(5px) rotate(-12deg); opacity: 0.65; }
+  70%       { transform: translateY(-6px) rotate(10deg); opacity: 0.6; }
+}
+
+@keyframes chip-orbit-c {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  25%       { transform: translateY(-5px) rotate(9deg); opacity: 0.7; }
+  60%       { transform: translateY(6px) rotate(-13deg); opacity: 0.6; }
+}
+
+/* ── Shared-effect pop (fires when is-blending is removed) ── */
+
+@keyframes effect-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.32); filter: brightness(1.35) drop-shadow(0 2px 10px currentColor); }
+  60%  { transform: scale(0.93); }
+  80%  { transform: scale(1.05); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes effect-pop-3 {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.45); filter: brightness(1.5) drop-shadow(0 0 14px currentColor); }
+  58%  { transform: scale(0.9); }
+  78%  { transform: scale(1.08); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.effects-grid:not(.is-blending) .effect-shared-2 {
+  animation: effect-pop 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.effects-grid:not(.is-blending) .effect-shared-3 {
+  animation: effect-pop-3 0.68s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 /* ── Blend loading spinner ───────────────────────── */
+
+.blend-spinner-row {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
 .blend-spinner {
   width: 28px;
   height: 28px;
-  border: 3px solid #d4e2d4;
-  border-top-color: #5a9e5a;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
-  margin: 8px auto;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* ── Tea image (small, in list rows) ─────────────── */
+/* ── Tea image (small, in overlay list rows) ─────── */
+
 .tea-img-placeholder {
   width: 56px;
   height: 56px;
   flex-shrink: 0;
-  background: #c8ddc8;
-  border-radius: 6px;
+  background: var(--color-border-strong);
+  border-radius: 8px;
 }
 
 .tea-img {
   width: 56px;
   height: 56px;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 8px;
   object-fit: cover;
 }
 
-/* ── Effect filter bar (tea selector) ───────────── */
+/* ── Effect filter bar ───────────────────────────── */
+
 .overlay-filter-bar {
-  padding: 10px 20px 10px 10%;
-  border-bottom: 1px solid #e0ede0;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .overlay-filter-bar select {
   padding: 5px 10px;
-  border: 1px solid #b0c8b0;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
   font-size: 0.85rem;
-  color: #2d4a2d;
-  background: #f5fbf5;
+  color: var(--color-text);
+  background: var(--color-subtle);
   cursor: pointer;
+  font-family: var(--font-body);
 }
 
 .overlay-filter-bar select:focus {
   outline: none;
-  border-color: #5a9e5a;
+  border-color: var(--color-accent);
 }
 
-/* ── Tea list inside selector overlay ───────────── */
+/* ── Tea list in selector overlay ────────────────── */
+
 .overlay-list {
   overflow-y: auto;
   flex: 1;
@@ -177,7 +464,7 @@ header h1 {
   align-items: center;
   gap: 14px;
   padding: 12px 20px;
-  border-bottom: 1px solid #eef3ee;
+  border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -187,11 +474,11 @@ header h1 {
 }
 
 .overlay-tea-row:hover:not(.already-selected) {
-  background: #f0f7f0;
+  background: var(--color-subtle);
 }
 
 .overlay-tea-row.already-selected {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -203,13 +490,14 @@ header h1 {
 
 .overlay-tea-name {
   font-weight: 600;
-  color: #2d4a2d;
-  margin-bottom: 4px;
+  color: var(--color-heading);
+  margin-bottom: 3px;
+  font-size: 0.92rem;
 }
 
 .overlay-tea-desc {
-  font-size: 0.85rem;
-  color: #556655;
+  font-size: 0.83rem;
+  color: var(--color-text-mid);
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -218,17 +506,18 @@ header h1 {
 
 .overlay-detail-btn {
   background: none;
-  border: 1px solid #b0c8b0;
-  border-radius: 4px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 6px;
   padding: 4px 10px;
-  color: #5a9e5a;
+  color: var(--color-accent);
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
   font-size: 1rem;
   letter-spacing: 2px;
+  transition: background 0.12s;
 }
 
 .overlay-detail-btn:hover {
-  background: #eaf4ea;
+  background: var(--color-subtle);
 }
