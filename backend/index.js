@@ -73,6 +73,7 @@ app.get('/api/gbif/common-names', async (req, res) => {
     const names = (vn.results || [])
       .filter(n => n.language === 'eng' && n.vernacularName)
       .map(n => n.vernacularName.trim())
+      .filter(n => n && !n.includes('-'))
       .filter(n => { if (seen.has(n.toLowerCase())) return false; seen.add(n.toLowerCase()); return true; });
 
     res.json(names);
@@ -369,6 +370,35 @@ app.get('/api/compounds/:id', async (req, res) => {
     const compound = await dal.getCompoundById(req.params.id);
     if (!compound) return res.status(404).json({ error: 'Compound not found' });
     res.json(compound);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/compounds', async (req, res) => {
+  try {
+    const { type, name, wikilink, psychoactive, effects } = req.body;
+    const id = await dal.addCompound({ type, name, wikilink, psychoactive, effects });
+    res.status(201).json({ id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/compounds/:id', async (req, res) => {
+  try {
+    const { type, name, wikilink, psychoactive, effects } = req.body;
+    await dal.updateCompound(req.params.id, { type, name, wikilink, psychoactive, effects });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/compounds/:id', async (req, res) => {
+  try {
+    await dal.deleteCompound(req.params.id);
+    res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

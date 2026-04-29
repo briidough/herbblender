@@ -252,6 +252,13 @@ const COMPOUND_TYPE_LABEL = {
   otherCompounds: 'otherCompound',
 };
 
+const COMPOUND_COLLECTION_FOR_TYPE = {
+  alkaloid:      'alkaloids',
+  polyphenol:    'polyphenols',
+  terpene:       'terpenes',
+  otherCompound: 'otherCompounds',
+};
+
 async function getCompounds() {
   const results = await Promise.all(
     COMPOUND_COLLECTIONS.map(col =>
@@ -270,6 +277,43 @@ async function getCompoundById(id) {
   return null;
 }
 
+async function addCompound({ type, name, wikilink, psychoactive, effects }) {
+  const col = COMPOUND_COLLECTION_FOR_TYPE[type];
+  if (!col) throw new Error(`Unknown compound type: ${type}`);
+  const result = await db().collection(col).insertOne({
+    name,
+    wikilink:     wikilink || null,
+    psychoactive: psychoactive ?? null,
+    effects:      effects || [],
+  });
+  return result.insertedId.toString();
+}
+
+async function updateCompound(id, { type, name, wikilink, psychoactive, effects }) {
+  for (const col of COMPOUND_COLLECTIONS) {
+    const existing = await db().collection(col).findOne({ _id: toId(id) });
+    if (!existing) continue;
+
+    const newCol = COMPOUND_COLLECTION_FOR_TYPE[type] || col;
+    const doc = { name, wikilink: wikilink || null, psychoactive: psychoactive ?? null, effects: effects || [] };
+
+    if (newCol !== col) {
+      await db().collection(col).deleteOne({ _id: toId(id) });
+      await db().collection(newCol).insertOne({ _id: toId(id), ...doc });
+    } else {
+      await db().collection(col).updateOne({ _id: toId(id) }, { $set: doc });
+    }
+    return;
+  }
+}
+
+async function deleteCompound(id) {
+  for (const col of COMPOUND_COLLECTIONS) {
+    const result = await db().collection(col).deleteOne({ _id: toId(id) });
+    if (result.deletedCount) return;
+  }
+}
+
 module.exports = {
   getTeas, getTeaById, addTea, updateTea, deleteTea,
   getEffectsForTea, getTeaWithEffects, getBlend,
@@ -277,5 +321,5 @@ module.exports = {
   getTeaPlant, getTeasByHerb, getTeasWithoutHerb,
   getHerbs, getHerbById, addHerb, updateHerb, deleteHerb,
   getEffects, getEffectById, addEffect, updateEffect, deleteEffect,
-  getCompounds, getCompoundById,
+  getCompounds, getCompoundById, addCompound, updateCompound, deleteCompound,
 };
