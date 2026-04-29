@@ -27,6 +27,36 @@ body {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+#sidebar.collapsed {
+  width: 24px;
+}
+
+#sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 4px;
+  background: none;
+  border: none;
+  color: #a8d4a8;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  z-index: 1;
+}
+
+#sidebar-toggle:hover {
+  color: #fff;
+}
+
+#sidebar.collapsed #sidebar-toggle {
+  right: 2px;
 }
 
 .sidebar-title {
