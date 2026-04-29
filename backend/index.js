@@ -7,6 +7,8 @@ const dal = require('./dal');
 const app = express();
 app.use(express.json());
 app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/teabrowser', express.static(path.join(__dirname, '../teaBrowser')));
 
 // ── Herbs (read) ──────────────────────────────────────────────────────────────
 
@@ -14,6 +16,15 @@ app.get('/api/herbs', async (req, res) => {
   try {
     const herbs = await dal.getHerbs();
     res.json(herbs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/herbs/:id/teas', async (req, res) => {
+  try {
+    const teas = await dal.getTeasByHerb(req.params.id);
+    res.json(teas);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -209,6 +220,27 @@ app.delete('/api/effects/:id', async (req, res) => {
   try {
     await dal.deleteEffect(req.params.id);
     res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Compounds ─────────────────────────────────────────────────────────────────
+
+app.get('/api/compounds', async (req, res) => {
+  try {
+    const compounds = await dal.getCompounds();
+    res.json(compounds);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/compounds/:id', async (req, res) => {
+  try {
+    const compound = await dal.getCompoundById(req.params.id);
+    if (!compound) return res.status(404).json({ error: 'Compound not found' });
+    res.json(compound);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
