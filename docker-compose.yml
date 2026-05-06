@@ -1,0 +1,35 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend/images:/app/images
+    networks:
+      - herbnet
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "42727:42727"
+    depends_on:
+      - backend
+    networks:
+      - herbnet
+
+  teabrowser:
+    build: ./teaBrowser
+    ports:
+      - "3001:3001"
+    environment:
+      - BACKEND_URL=http://backend:3000
+    depends_on:
+      - backend
+    networks:
+      - herbnet
+
+networks:
+  herbnet:
+    driver: bridge

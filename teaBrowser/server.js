@@ -3,11 +3,12 @@
 const http = require('http');
 const fs   = require('fs');
 const path = require('path');
+const { URL } = require('url');
 
 const PORT        = process.env.PORT || 3001;
-const BACKEND     = { hostname: 'localhost', port: process.env.BACKEND_PORT || 3000 };
+const _backendUrl = new URL(process.env.BACKEND_URL || 'http://localhost:3000');
+const BACKEND     = { hostname: _backendUrl.hostname, port: Number(_backendUrl.port) || 3000 };
 const STATIC_DIR  = __dirname;
-const SHARED_CSS  = path.join(__dirname, '../backend/public/shared.css');
 
 const MIME = {
   '.html': 'text/html',
@@ -54,11 +55,7 @@ function serveFile(filePath, res) {
 const server = http.createServer((req, res) => {
   const url = req.url.split('?')[0];
 
-  if (url === '/shared.css') {
-    return serveFile(SHARED_CSS, res);
-  }
-
-  if (url.startsWith('/api/') || url.startsWith('/images/')) {
+  if (url === '/shared.css' || url.startsWith('/api/') || url.startsWith('/images/')) {
     return proxyToBackend(req, res);
   }
 
