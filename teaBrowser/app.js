@@ -444,12 +444,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
   });
 
-  const available = await checkTeaBlenderAvailable();
-  if (!available) {
-    document.querySelector('[data-panel="tea-blender"]').remove();
-    document.getElementById('panel-tea-blender').classList.remove('active');
-    showPanel('tea-dict');
+  // In production (no explicit port = standard HTTPS via nginx), the Tea Blender
+  // is served at /herbblender/app/. In local dev (explicit port 3001), fall back
+  // to the standalone Angular dev server on port 42727.
+  const isLocalDev = !!window.location.port;
+  if (isLocalDev) {
+    const available = await checkTeaBlenderAvailable();
+    if (!available) {
+      document.querySelector('[data-panel="tea-blender"]').remove();
+      document.getElementById('panel-tea-blender').classList.remove('active');
+      showPanel('tea-dict');
+    } else {
+      document.getElementById('tea-blender-iframe').src = `http://${window.location.hostname}:42727`;
+    }
   } else {
-    document.getElementById('tea-blender-iframe').src = `http://${window.location.hostname}:42727`;
+    document.getElementById('tea-blender-iframe').src = '/herbblender/app/';
   }
 });
