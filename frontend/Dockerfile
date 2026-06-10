@@ -3,7 +3,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
+ARG BASE_HREF=/
+RUN npm run build -- --base-href=$BASE_HREF
 
 FROM nginx:alpine
 COPY --from=builder /app/dist/frontend/browser /usr/share/nginx/html
