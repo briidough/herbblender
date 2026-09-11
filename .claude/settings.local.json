@@ -12,7 +12,8 @@
       "Bash(npm init:*)",
       "Bash(npm install:*)",
       "Bash(node -e ':*)",
-      "Bash(git ls-tree:*)"
+      "Bash(git ls-tree:*)",
+      "mcp__mongodb__count"
     ]
   }
 }

@@ -3,7 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const https = require('https');
-const { connect } = require('./db');
+const { connect, close } = require('./db');
+const { englishVernaculars } = require('./vernaculars');
 const dal = require('./dal');
 
 const app = express();
@@ -68,14 +69,7 @@ app.get('/api/gbif/common-names', async (req, res) => {
     const vn = await gbifGet(
       `https://api.gbif.org/v1/species/${match.usageKey}/vernacularNames?limit=100`
     );
-    const seen = new Set();
-    const names = (vn.results || [])
-      .filter(n => n.language === 'eng' && n.vernacularName)
-      .map(n => n.vernacularName.trim())
-      .filter(n => n && !n.includes('-'))
-      .filter(n => { if (seen.has(n.toLowerCase())) return false; seen.add(n.toLowerCase()); return true; });
-
-    res.json(names);
+    res.json(englishVernaculars(vn.results));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -407,7 +401,20 @@ app.delete('/api/compounds/:id', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 connect().then(() => {
-  app.listen(PORT, '0.0.0.0', () => console.log(`HerbBlender backend running on port ${PORT}`));
+  const server = app.listen(PORT, '0.0.0.0', () =>
+    console.log(`HerbBlender backend running on port ${PORT}`));
+
+  // Docker stops containers with SIGTERM. Without this the pool is left open and Atlas has
+  // to reap the connections itself.
+  for (const signal of ['SIGTERM', 'SIGINT']) {
+    process.on(signal, () => {
+      console.log(`${signal} received, shutting down`);
+      server.close(async () => {
+        await close().catch(() => {});
+        process.exit(0);
+      });
+    });
+  }
 }).catch(err => {
   console.error('Failed to connect to MongoDB:', err.message);
   process.exit(1);

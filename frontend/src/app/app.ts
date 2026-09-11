@@ -17,6 +17,7 @@ const EFFECT_MOOD_MAP: Record<string, string> = {
   'Anxiolytic':               'effect-calming',
   'Sedative':                 'effect-calming',
   'Adaptogenic Support':      'effect-calming',
+  'Muscle Relaxation':        'effect-calming',
   'Antioxidant':              'effect-protective',
   'Anti-inflammatory':        'effect-protective',
   'Cell Protection':          'effect-protective',
@@ -35,6 +36,11 @@ const EFFECT_MOOD_MAP: Record<string, string> = {
   'Detox Support':            'effect-supportive',
   'Hydration & Refreshment':  'effect-supportive',
   'Astringent':               'effect-supportive',
+  // These two fall outside the energizing/calming/protective split and would land on
+  // 'supportive' via the fallback anyway — listed so the map stays a complete inventory of
+  // every effect name in the DB, and an unlisted name reliably means someone forgot one.
+  'pH Regulation':            'effect-supportive',
+  'Feline Attractant':        'effect-supportive',
 };
 
 @Component({

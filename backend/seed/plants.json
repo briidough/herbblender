@@ -1,0 +1,185 @@
+{
+  "_readme": [
+    "Source of truth for the plants collection. Imported by migrations/002_backfill_plants.js,",
+    "which upserts on {genus, species} and only $sets keys that are present here — omit a key",
+    "and the existing DB value is left alone. An empty-string description is never written, so",
+    "descriptions can be filled in progressively and the importer re-run safely.",
+    "",
+    "genus/species/family MUST match the referencing tea exactly on all three. getTeaPlant",
+    "joins on genus+species, but getTeasWithoutHerb also compares family, so a family-only",
+    "mismatch renders fine in the app while the tea stays stuck in the manager's orphan list.",
+    "",
+    "Species epithets are stored bare, without hybrid notation, because the tea->plant join is",
+    "raw string equality. 'limon' and 'piperita' are both nothospecies; that is noted in their",
+    "otherNames rather than encoded in the species field.",
+    "",
+    "A name ending in '<>' is a species-choice that needs a human spot-check. The taxonomy is",
+    "not in doubt; which species the commercial tea is actually made from is.",
+    "",
+    "Description house style, matching the 24 originally-authored plants: two to four sentences,",
+    "roughly 250-400 characters, third person, opening with what kind of plant it is and where",
+    "it is from, closing with how the material is prepared. Botanical and historical only — no",
+    "health or therapeutic claims, since those belong to the effects collection."
+  ],
+
+  "plants": [
+    { "name": "Ginkgo", "genus": "Ginkgo", "species": "biloba", "family": "Ginkgoaceae",
+      "otherNames": ["Maidenhair Tree"], "nativeRange": ["China"],
+      "description": "A species of tree that is the sole surviving member of its order, little changed in form for some two hundred million years and often described as a living fossil. Native to China, where a few apparently wild populations persist, it has been planted around temples for centuries. The fan-shaped leaves turn gold in autumn and are dried and steeped as an infusion." },
+
+    { "name": "Common Chicory", "genus": "Cichorium", "species": "intybus", "family": "Asteraceae",
+      "otherNames": ["Blue Sailors", "Succory"], "nativeRange": ["Europe", "Western Asia", "North Africa"],
+      "description": "A species of flowering plant in the daisy family, native to Europe, western Asia and North Africa, with stiff branching stems and sky-blue flowers that open and close with the sun. It has been cultivated since antiquity for both its salad leaves and its long taproot, which is roasted and ground to make a dark, bitter brew long used to extend or replace coffee." },
+
+    { "name": "Kava", "genus": "Piper", "species": "methysticum", "family": "Piperaceae",
+      "otherNames": ["Kava Kava", "Awa"], "nativeRange": ["Pacific Islands"],
+      "description": "A species of perennial shrub in the pepper family, native to the islands of the western Pacific and carried across Oceania by voyaging settlers. It is sterile and propagated only from cuttings, so every plant is a human-tended clone. The rootstock is pounded and steeped in cold water to make a cloudy, earthy drink central to ceremonial life across the region." },
+
+    { "name": "English Lavender", "genus": "Lavandula", "species": "angustifolia", "family": "Lamiaceae",
+      "otherNames": ["True Lavender", "Common Lavender"], "nativeRange": ["Mediterranean"],
+      "description": "A species of flowering plant in the mint family, native to the Mediterranean and long established on dry, stony hillsides. Despite its common name it reached England only in the sixteenth century. Narrow grey-green leaves and dense spikes of violet flowers are strongly aromatic, and the buds are dried and steeped alone or in blends for a sweet, resinous infusion." },
+
+    { "name": "Lemon Balm", "genus": "Melissa", "species": "officinalis", "family": "Lamiaceae",
+      "otherNames": ["Balm Mint", "Common Balm"], "nativeRange": ["Europe", "Central Asia"],
+      "description": "A species of perennial herb in the mint family, native to Europe and Central Asia, spreading readily by runners once established. Its crinkled leaves release a soft lemon scent when bruised, which has made it a favourite of beekeepers since Roman times; the genus name comes from the Greek for honeybee. The leaves are dried and steeped for a mild citrus infusion." },
+
+    { "name": "Lemon Myrtle", "genus": "Backhousia", "species": "citriodora", "family": "Myrtaceae",
+      "otherNames": ["Sweet Verbena Tree"], "nativeRange": ["Australia"],
+      "description": "A species of flowering tree in the myrtle family, endemic to the subtropical rainforests of coastal Queensland. Its glossy leaves carry one of the highest natural concentrations of citral known, giving a scent more intensely lemon than lemon itself. Long used by Aboriginal peoples, the dried leaf is steeped to make a fragrant, pale infusion." },
+
+    { "name": "Milk Thistle", "genus": "Silybum", "species": "marianum", "family": "Asteraceae",
+      "otherNames": ["Blessed Milkthistle", "Saint Mary's Thistle"], "nativeRange": ["Mediterranean"],
+      "description": "A species of thistle native to the Mediterranean and now naturalised across much of the world. It is named for the white marbling along the veins of its spiny leaves, which legend attributed to spilled milk. Tall purple flowerheads give way to hard black seeds, which are crushed and steeped to make a mild, nutty infusion." },
+
+    { "name": "Great Mullein", "genus": "Verbascum", "species": "thapsus", "family": "Scrophulariaceae",
+      "otherNames": ["Common Mullein", "Candlewick Plant"], "nativeRange": ["Europe", "Asia", "North Africa"],
+      "description": "A biennial herb native to Europe, Asia and North Africa, widely naturalised elsewhere on poor and disturbed ground. It spends its first year as a rosette of thick, felted grey leaves, then sends up a single flowering spike that can exceed two metres. The dried leaves and yellow flowers are steeped, then strained carefully to remove their fine hairs." },
+
+    { "name": "Stinging Nettle", "genus": "Urtica", "species": "dioica", "family": "Urticaceae",
+      "otherNames": ["Common Nettle"], "nativeRange": ["Europe", "Asia", "North Africa"],
+      "description": "A herbaceous perennial native to Europe, Asia and North Africa, and now naturalised well beyond that range on disturbed and nitrogen-rich ground. The leaves and stems carry hollow hairs that break on contact and inject an irritant, a defence that drying or brief heating removes entirely. Young spring leaves are gathered and steeped to make a dark, grassy infusion." },
+
+    { "name": "Common Sage", "genus": "Salvia", "species": "officinalis", "family": "Lamiaceae",
+      "otherNames": ["Garden Sage", "Kitchen Sage"], "nativeRange": ["Mediterranean"],
+      "description": "A species of evergreen subshrub in the mint family, native to the Mediterranean and grown across Europe since the Middle Ages, when it was valued highly enough to be traded against Chinese tea. Its pebbled grey-green leaves are strongly aromatic and hold their scent well after drying, giving a warm, faintly camphorous infusion." },
+
+    { "name": "Holy Basil", "genus": "Ocimum", "species": "tenuiflorum", "family": "Lamiaceae",
+      "otherNames": ["Tulsi", "Sacred Basil"], "nativeRange": ["Indian Subcontinent", "Southeast Asia"],
+      "description": "A species of aromatic shrub in the mint family, native to the Indian subcontinent and Southeast Asia. It is cultivated across India as a sacred plant, grown in household courtyards and temple grounds rather than kitchen gardens. The leaves, ranging from green to deep purple depending on the variety, are dried and steeped for a clove-scented infusion." },
+
+    { "name": "Purple Passionflower", "genus": "Passiflora", "species": "incarnata", "family": "Passifloraceae",
+      "otherNames": ["Maypop", "Wild Apricot"], "nativeRange": ["North America"],
+      "description": "A fast-growing perennial vine native to the southeastern United States, climbing by tendrils over fences and scrub. Its intricate flowers, fringed with purple filaments, were read by sixteenth-century missionaries as a depiction of the Passion, which gave the genus its name. The dried leaves and stems are steeped to make a grassy, mild infusion." },
+
+    { "name": "Peppermint", "genus": "Mentha", "species": "piperita", "family": "Lamiaceae",
+      "otherNames": ["Mentha x piperita", "Brandy Mint"], "nativeRange": ["Europe"],
+      "description": "A naturally occurring hybrid of water mint and spearmint, first recorded in England in the seventeenth century and now grown commercially worldwide. Being a sterile hybrid it sets little viable seed and is propagated from runners. Its high menthol content gives the dried leaf a sharp, cooling character that tends to dominate any blend it enters." },
+
+    { "name": "Red Raspberry", "genus": "Rubus", "species": "idaeus", "family": "Rosaceae",
+      "otherNames": ["European Raspberry", "Framboise"], "nativeRange": ["Europe", "Northern Asia"],
+      "description": "A species of deciduous shrub in the rose family, native to Europe and northern Asia, with biennial canes that fruit in their second year and then die back. Though grown chiefly for its fruit, the leaves have the longer history of use as a beverage. Dried and steeped, they give a mild infusion closer in character to black tea than to the berry." },
+
+    { "name": "Red Clover", "genus": "Trifolium", "species": "pratense", "family": "Fabaceae",
+      "otherNames": ["Meadow Clover", "Cow Clover"], "nativeRange": ["Europe", "Western Asia", "North Africa"],
+      "description": "A herbaceous perennial in the pea family, native to Europe, western Asia and North Africa, and sown worldwide as forage and green manure for its ability to fix nitrogen in the soil. Its rounded magenta flowerheads are a favoured bumblebee forage. The dried blossoms are steeped to make a faintly sweet, hay-scented infusion." },
+
+    { "name": "Rosemary", "genus": "Salvia", "species": "rosmarinus", "family": "Lamiaceae",
+      "otherNames": ["Rosmarinus officinalis", "Compass Plant"], "nativeRange": ["Mediterranean"],
+      "description": "An evergreen shrub in the mint family, native to the Mediterranean, with needle-like leaves suited to dry, salt-laden coastal air. Long classified as Rosmarinus officinalis, it was moved into the genus Salvia in 2017 once genetic work placed it firmly among the sages. The dried leaves give a resinous, pine-like infusion." },
+
+    { "name": "Slippery Elm", "genus": "Ulmus", "species": "rubra", "family": "Ulmaceae",
+      "otherNames": ["Red Elm", "Indian Elm"], "nativeRange": ["Eastern North America"],
+      "description": "A species of deciduous tree native to eastern North America, reaching twenty metres, with rough, coarsely toothed leaves. Its name comes from the inner bark, which turns slick and mucilaginous when wet, a property long known to Indigenous peoples of the region. The dried inner bark is powdered and steeped to a thick, bland, faintly sweet drink." },
+
+    { "name": "Spearmint", "genus": "Mentha", "species": "spicata", "family": "Lamiaceae",
+      "otherNames": ["Garden Mint", "Common Mint"], "nativeRange": ["Europe", "Southwest Asia"],
+      "description": "A species of perennial herb in the mint family, native to Europe and southwest Asia and naturalised almost everywhere it has been introduced. It spreads aggressively by underground runners, which is why gardeners usually confine it to pots. Low in menthol compared with peppermint, its dried leaf gives a sweeter, rounder and far gentler infusion." },
+
+    { "name": "St John's Wort", "genus": "Hypericum", "species": "perforatum", "family": "Hypericaceae",
+      "otherNames": ["Perforate St John's Wort", "Klamath Weed"], "nativeRange": ["Europe", "Western Asia", "North Africa"],
+      "description": "A herbaceous perennial native to Europe, western Asia and North Africa, and an aggressive invader of pasture in North America and Australia. It flowers around the June feast day that gives it its name, and its leaves are dotted with translucent glands that look like pinpricks when held to the light. The dried flowering tops are steeped for a resinous infusion." },
+
+    { "name": "Star Anise", "genus": "Illicium", "species": "verum", "family": "Schisandraceae",
+      "otherNames": ["Chinese Star Anise", "Badian"], "nativeRange": ["Southern China", "Northeast Vietnam"],
+      "description": "A species of evergreen tree native to southern China and northeast Vietnam, whose fruit dries into a hard, eight-pointed star. It is unrelated to true anise but shares the same dominant aromatic compound. The whole pods are steeped to give a sweet, strongly liquorice-scented infusion. The similar-looking Japanese star anise, Illicium anisatum, is toxic and is never a substitute." },
+
+    { "name": "Candyleaf", "genus": "Stevia", "species": "rebaudiana", "family": "Asteraceae",
+      "otherNames": ["Stevia", "Sweetleaf"], "nativeRange": ["Paraguay", "Brazil"],
+      "description": "A species of shrub in the daisy family, native to the border highlands of Paraguay and Brazil, where the Guarani have used its leaves as a sweetener for centuries. The glycosides in the leaf are many times sweeter than sugar by weight. Dried leaves are steeped alone or added to blends, lending a sweetness that carries a distinct liquorice edge." },
+
+    { "name": "Common Thyme", "genus": "Thymus", "species": "vulgaris", "family": "Lamiaceae",
+      "otherNames": ["Garden Thyme"], "nativeRange": ["Mediterranean"],
+      "description": "A low evergreen subshrub in the mint family, native to the western Mediterranean, forming dense woody mats over dry rocky ground. It has been in continuous use since ancient Egypt and was burned as incense by the Greeks. The tiny leaves hold their volatile oils well after drying and give a sharp, savoury, faintly medicinal infusion." },
+
+    { "name": "Turmeric", "genus": "Curcuma", "species": "longa", "family": "Zingiberaceae",
+      "otherNames": ["Indian Saffron", "Haldi"], "nativeRange": ["Indian Subcontinent", "Southeast Asia"],
+      "description": "A rhizomatous perennial in the ginger family, native to the Indian subcontinent and Southeast Asia and unknown in the wild. It is propagated entirely by division, so every plant is a clone of cultivated stock. The rhizomes are boiled, dried and ground to a vivid orange-yellow powder that stains readily and gives an earthy, peppery infusion." },
+
+    { "name": "Valerian", "genus": "Valeriana", "species": "officinalis", "family": "Caprifoliaceae",
+      "otherNames": ["Garden Valerian", "All-heal"], "nativeRange": ["Europe", "Asia"],
+      "description": "A tall herbaceous perennial native to Europe and Asia, carrying clusters of small pale pink flowers on stems up to two metres. Its fresh root is nearly odourless, but on drying it develops a pungent smell often likened to old leather, which cats and rats alike find strongly attractive. The dried root is steeped to make a musky, earthy infusion." },
+
+    { "name": "Lemon", "genus": "Citrus", "species": "limon", "family": "Rutaceae",
+      "otherNames": ["Citrus x limon"], "nativeRange": ["South Asia", "Northeast India"],
+      "description": "A small evergreen tree of hybrid origin, most likely a cross between citron and bitter orange, first cultivated in South Asia. It reached the Mediterranean through Arab traders and was a staple of European gardens by the fifteenth century. The aromatic outer rind is pared from the bitter pith, dried, and steeped to give a bright citrus infusion." },
+
+    { "name": "Common Jasmine <>", "genus": "Jasminum", "species": "officinale", "family": "Oleaceae",
+      "otherNames": ["Poet's Jasmine", "True Jasmine"], "nativeRange": ["Caucasus", "Iran", "Himalayas", "Western China"],
+      "description": "A climbing deciduous shrub native to a broad arc running from the Caucasus and Iran through the Himalayas into western China. Its white star-shaped flowers open after dusk and are most fragrant at night, which is when they are picked. The dried blossoms are steeped alone, or layered with green tea so the leaf takes up their scent." },
+
+    { "name": "Brazilian Peppertree <>", "genus": "Schinus", "species": "terebinthifolia", "family": "Anacardiaceae",
+      "otherNames": ["Pink Peppercorn", "Rose Pepper"], "nativeRange": ["South America"],
+      "description": "A fast-growing evergreen tree in the cashew family, native to South America and a serious invasive weed in Florida, Hawaii and South Africa. Its small pink fruits are dried and sold as pink peppercorns, though it is unrelated to true pepper and shares a family with poison ivy. The brittle berries are crushed and steeped for a sweet, resinous note." },
+
+    { "name": "West Indian Lemongrass <>", "genus": "Cymbopogon", "species": "citratus", "family": "Poaceae",
+      "otherNames": ["Lemongrass", "Fever Grass"], "nativeRange": ["Maritime Southeast Asia"],
+      "description": "A tall tufted perennial grass native to maritime Southeast Asia, grown throughout the tropics and rarely flowering in cultivation. Its blue-green blades are edged with fine silica teeth sharp enough to cut, and release a strong citrus scent when crushed. The leaves are dried, chopped and steeped to make a pale, clean, distinctly lemon infusion." },
+
+    { "name": "Dog Rose <>", "genus": "Rosa", "species": "canina", "family": "Rosaceae",
+      "otherNames": ["Briar Rose", "Rose Hip"], "nativeRange": ["Europe", "Northwest Africa", "Western Asia"],
+      "description": "A scrambling deciduous shrub native to Europe, northwest Africa and western Asia, arching to five metres through hedgerows on hooked thorns. Its pale pink summer flowers give way to scarlet hips that persist well into winter. The hips are dried and steeped once their irritant inner hairs are removed, yielding a tart, deep red infusion." },
+
+    { "name": "Small-leaved Lime <>", "genus": "Tilia", "species": "cordata", "family": "Malvaceae",
+      "otherNames": ["Littleleaf Linden", "Linden"], "nativeRange": ["Europe"],
+      "description": "A species of deciduous tree native to much of Europe, reaching thirty metres and living for several centuries. Small heart-shaped leaves and intensely fragrant pale yellow flowers appear in midsummer, drawing heavy bee traffic. The dried blossom, gathered together with its papery wing-like bract, is steeped to make the infusion known as linden or tilleul." },
+
+    { "name": "Liquorice <>", "genus": "Glycyrrhiza", "species": "glabra", "family": "Fabaceae",
+      "otherNames": ["Licorice", "Sweet Root"], "nativeRange": ["Western Asia", "South Europe", "North Africa"],
+      "description": "A herbaceous perennial in the pea family, native to western Asia, southern Europe and North Africa, with a deep and widely spreading root system. The roots contain glycyrrhizin, a compound many times sweeter than sugar, which is the source of the plant's long value as a sweetener. Dried and shredded, the root is steeped for a heavy, sweet, faintly bitter infusion." },
+
+    { "name": "Black Elder <>", "genus": "Sambucus", "species": "nigra", "family": "Adoxaceae",
+      "otherNames": ["Elderberry", "European Elder"], "nativeRange": ["Europe", "North Africa", "Western Asia"],
+      "description": "A fast-growing deciduous shrub or small tree native to Europe, North Africa and western Asia, common in hedgerows and on disturbed ground. It carries broad flat heads of creamy flowers in early summer, followed by hanging clusters of small purple-black berries. Both the flowers and the dried berries are steeped, the berries only after cooking." },
+
+    { "name": "Pot Marigold <>", "genus": "Calendula", "species": "officinalis", "family": "Asteraceae",
+      "otherNames": ["Calendula", "Ruddles", "Common Marigold"], "nativeRange": ["Southern Europe"],
+      "description": "An annual in the daisy family, native to southern Europe and in cultivation so long that it is no longer known with certainty in the wild. Its flowers track the daylight, opening and closing on a schedule reliable enough to have served as a rough clock. The dried orange ray florets are steeped for a mild, slightly bitter infusion and to lend colour to blends." }
+  ],
+
+  "existing": [
+    { "genus": "Pimpinella", "species": "anisum", "nativeRange": ["Eastern Mediterranean", "Southwest Asia"] },
+    { "genus": "Withania", "species": "somnifera", "nativeRange": ["Indian Subcontinent", "Africa", "Middle East"] },
+    { "genus": "Matricaria", "species": "chamomilla", "nativeRange": ["Europe", "Western Asia"] },
+    { "genus": "Eucalyptus", "species": "globulus", "nativeRange": ["Australia"] },
+    { "genus": "Clitoria", "species": "ternatea", "nativeRange": ["Southeast Asia"] },
+    { "genus": "Elettaria", "species": "cardamomum", "nativeRange": ["Southern India", "Sri Lanka"] },
+    { "genus": "Nepeta", "species": "cataria", "nativeRange": ["Europe", "Central Asia", "China"] },
+    { "genus": "Cinnamomum", "species": "cassia", "nativeRange": ["Southern China"] },
+    { "genus": "Syzygium", "species": "aromaticum", "nativeRange": ["Maluku Islands"] },
+    { "genus": "Rosa", "species": "damascena", "nativeRange": ["Middle East"] },
+    { "genus": "Turnera", "species": "diffusa", "nativeRange": ["Central America", "Mexico", "Caribbean"] },
+    { "genus": "Taraxacum", "species": "officinale", "nativeRange": ["Europe", "Asia"] },
+    { "genus": "Echinacea", "species": "purpurea", "nativeRange": ["Eastern North America"] },
+    { "genus": "Foeniculum", "species": "vulgare", "nativeRange": ["Mediterranean"] },
+    { "genus": "Trigonella", "species": "foenum-graecum", "nativeRange": ["Mediterranean", "Western Asia"] },
+    { "genus": "Zingiber", "species": "officinale", "nativeRange": ["Maritime Southeast Asia"] },
+    { "genus": "Ilex", "species": "guayusa", "nativeRange": ["Amazon Rainforest"] },
+    { "genus": "Juniperus", "species": "communis", "nativeRange": ["Europe", "Asia", "North America"] },
+    { "genus": "Aspalathus", "species": "linearis", "nativeRange": ["South Africa"] },
+    { "genus": "Hibiscus", "species": "sabdariffa", "nativeRange": ["Africa"] },
+    { "genus": "Citrus", "species": "aurantium", "nativeRange": ["Southeast Asia"] },
+    { "genus": "Eleutherococcus", "species": "senticosus", "nativeRange": ["Northeast Asia"] },
+    { "genus": "Camellia", "species": "sinensis", "nativeRange": ["East Asia", "Southeast Asia", "Indian Subcontinent"] },
+    { "genus": "Ilex", "species": "paraguariensis", "nativeRange": ["South America"] }
+  ]
+}
