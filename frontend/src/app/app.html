@@ -42,7 +42,7 @@
               @for (effect of group.effects; track effect.ID) {
                 <div
                   class="effect-chip"
-                  [class]="moodClass(effect.NAME)"
+                  [class]="moodClass(effect)"
                   [class.effect-shared-2]="sharedClass(effect.ID) === 'effect-shared-2'"
                   [class.effect-shared-3]="sharedClass(effect.ID) === 'effect-shared-3'"
                   [title]="effect.DESCRIPTION">
@@ -138,7 +138,7 @@
         } @else {
           <div class="effects-grid">
             @for (effect of detailEffects(); track effect.ID) {
-              <div class="effect-chip" [class]="moodClass(effect.NAME)">{{ effect.NAME }}</div>
+              <div class="effect-chip" [class]="moodClass(effect)">{{ effect.NAME }}</div>
             } @empty {
               <p class="empty-msg">No effects recorded.</p>
             }

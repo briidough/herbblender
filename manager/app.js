@@ -1,4 +1,5 @@
-// MongoDB DAL normalizes documents to uppercase keys: ID, NAME, DESCRIPTION, etc.
+// The DAL maps the Postgres schema onto uppercase keys -- ID, NAME, DESCRIPTION, MOOD --
+// a DTO kept from the Oracle era so the three frontends never see the schema change.
 
 const state = {
   activeSection: null,  // 'herbs' | 'teas' | 'effects'
@@ -49,7 +50,7 @@ function renderList() {
   const label = section.charAt(0).toUpperCase() + section.slice(1);
   const rows = state.items.map(item => {
     const sub = section === 'effects'
-      ? `<span class="quality-badge ${qualityClass(item.QUALITY)}">${item.QUALITY || ''}</span>`
+      ? `<span class="mood-badge ${moodClass(item.MOOD)}">${esc(item.MOOD || '')}</span>`
       : section === 'compounds'
         ? `<span class="item-sub">${esc(item.TYPE || '')}</span>`
         : `<span class="item-sub">${esc(item.DESCRIPTION || '').slice(0, 60)}${(item.DESCRIPTION || '').length > 60 ? '…' : ''}</span>`;
@@ -93,7 +94,7 @@ function renderDetail() {
     const plantName = [item.GENUS, item.SPECIES].filter(Boolean).join(' ');
     const effectsHtml = (item.EFFECTS || []).length
       ? `<div class="effects-list">${(item.EFFECTS || []).map(e =>
-          `<span class="effect-chip ${qualityClass(e.QUALITY)}">${esc(e.NAME)}</span>`).join('')}</div>`
+          `<span class="effect-chip ${moodClass(e.MOOD)}">${esc(e.NAME)}</span>`).join('')}</div>`
       : '<span style="color:#90a4ae;font-size:0.85rem">None</span>';
     fields = `
       <div class="detail-grid">
@@ -108,9 +109,9 @@ function renderDetail() {
   } else if (section === 'effects') {
     fields = `
       <div class="detail-grid">
-        <span class="detail-label">Quality</span>
+        <span class="detail-label">Mood</span>
         <span class="detail-value">
-          <span class="quality-badge ${qualityClass(item.QUALITY)}">${esc(item.QUALITY || '')}</span>
+          <span class="mood-badge ${moodClass(item.MOOD)}">${esc(item.MOOD || '')}</span>
         </span>
         <span class="detail-label">Description</span><span class="detail-value">${esc(item.DESCRIPTION || '')}</span>
       </div>`;
@@ -118,7 +119,7 @@ function renderDetail() {
     fields = `
       <div class="detail-grid">
         <span class="detail-label">Type</span><span class="detail-value">${esc(item.TYPE || '')}</span>
-        <span class="detail-label">Psychoactive</span><span class="detail-value">${item.PSYCHOACTIVE === true ? 'Yes' : item.PSYCHOACTIVE === false ? 'No' : 'Unknown'}</span>
+        <span class="detail-label">Psychoactive</span><span class="detail-value">${esc(item.PSYCHOACTIVE || 'Unknown')}</span>
         <span class="detail-label">Effects</span><span class="detail-value">${esc((item.EFFECTS || []).join(', ')) || '—'}</span>
         <span class="detail-label">Wiki</span><span class="detail-value">${item.WIKILINK ? `<a href="${esc(item.WIKILINK)}" target="_blank">${esc(item.WIKILINK)}</a>` : '—'}</span>
       </div>`;
@@ -177,7 +178,7 @@ function renderEdit() {
     const currentEffects = (item?.EFFECTS || []).map(e => `
       <div class="effect-row">
         <span class="effect-row-name">${esc(e.NAME)}</span>
-        <span class="quality-badge ${qualityClass(e.QUALITY)}">${esc(e.QUALITY || '')}</span>
+        <span class="mood-badge ${moodClass(e.MOOD)}">${esc(e.MOOD || '')}</span>
         <button class="btn btn-red btn-icon" data-action="unlink-effect" data-effect-name="${esc(e.NAME)}">−</button>
       </div>`).join('');
 
@@ -211,7 +212,7 @@ function renderEdit() {
           <div id="new-effect-form" class="new-effect-form" style="display:none">
             <input type="text" id="new-effect-name" placeholder="Effect name">
             <textarea id="new-effect-desc" placeholder="Description" rows="2"></textarea>
-            <select id="new-effect-quality">
+            <select id="new-effect-mood">
               <option value="positive">Positive</option>
               <option value="negative">Negative</option>
               <option value="neutral">Neutral</option>
@@ -225,16 +226,16 @@ function renderEdit() {
       </div>`;
 
   } else if (section === 'effects') {
-    const q = item?.QUALITY || 'neutral';
+    const m = item?.MOOD || 'supportive';
     formFields = `
       ${field('name', 'Name', item?.NAME, 'text', true)}
       ${textarea('description', 'Description', item?.DESCRIPTION)}
       <div class="form-field">
-        <label>Quality</label>
-        <select name="quality">
-          <option value="positive" ${q === 'positive' ? 'selected' : ''}>Positive</option>
-          <option value="negative" ${q === 'negative' ? 'selected' : ''}>Negative</option>
-          <option value="neutral"  ${q === 'neutral'  ? 'selected' : ''}>Neutral</option>
+        <label>Mood</label>
+        <select name="mood">
+          ${MOODS.map(v =>
+            `<option value="${v}" ${m === v ? 'selected' : ''}>${v[0].toUpperCase()}${v.slice(1)}</option>`
+          ).join('')}
         </select>
       </div>`;
 
@@ -253,12 +254,17 @@ function renderEdit() {
         </select>
         ${!isNew ? `<input type="hidden" name="type" value="${esc(t)}">` : ''}
       </div>
+      <!-- Values must be exactly the rows of the psychoactivity lookup table, because
+           compound.psychoactivity is a foreign key into it. The old true/false pair was
+           a boolean posted into a text FK column -- Mongo accepted it, Postgres answers
+           23503 -- and it could not express 'mild', which the live data already uses. -->
       <div class="form-field">
         <label>Psychoactive</label>
         <select name="psychoactive">
-          <option value=""    ${p == null   ? 'selected' : ''}>Unknown</option>
-          <option value="true"  ${p === true  ? 'selected' : ''}>Yes</option>
-          <option value="false" ${p === false ? 'selected' : ''}>No</option>
+          <option value=""     ${p == null    ? 'selected' : ''}>Unknown</option>
+          <option value="yes"  ${p === 'yes'  ? 'selected' : ''}>Yes</option>
+          <option value="mild" ${p === 'mild' ? 'selected' : ''}>Mild</option>
+          <option value="no"   ${p === 'no'   ? 'selected' : ''}>No</option>
         </select>
       </div>
       ${field('wikilink', 'Wiki Link', item?.WIKILINK)}
@@ -345,12 +351,13 @@ function esc(str) {
     .replace(/"/g, '&quot;');
 }
 
-function qualityClass(q) {
-  if (!q) return '';
-  const lq = q.toLowerCase();
-  if (lq === 'positive') return 'quality-positive';
-  if (lq === 'negative') return 'quality-negative';
-  return 'quality-neutral';
+// The five values of effect.mood's CHECK constraint, in the order the dropdown shows
+// them. Replaces the old Quality control, which edited a field no effect ever had and
+// no column ever stored.
+const MOODS = ['stimulating', 'calming', 'protective', 'supportive', 'caution'];
+
+function moodClass(mood) {
+  return mood && MOODS.includes(mood) ? `mood-${mood}` : '';
 }
 
 // ── Event listeners ───────────────────────────────────────────────────────────
@@ -647,9 +654,9 @@ async function handleSave(e) {
 
   if (section === 'compounds') {
     data.effects = (data.effects || '').split(',').map(s => s.trim()).filter(Boolean);
-    if (data.psychoactive === 'true')  data.psychoactive = true;
-    else if (data.psychoactive === 'false') data.psychoactive = false;
-    else data.psychoactive = null;
+    // '' is the "Unknown" option and means NULL; every other value is already a
+    // psychoactivity key, so it goes through untouched.
+    data.psychoactive = data.psychoactive || null;
   }
 
   let result;
@@ -703,9 +710,7 @@ async function handleSaveAndNext() {
 
   if (section === 'compounds') {
     data.effects = (data.effects || '').split(',').map(s => s.trim()).filter(Boolean);
-    if (data.psychoactive === 'true')       data.psychoactive = true;
-    else if (data.psychoactive === 'false') data.psychoactive = false;
-    else                                    data.psychoactive = null;
+    data.psychoactive = data.psychoactive || null;
   }
 
   let result;
@@ -769,11 +774,11 @@ function toggleNewEffectForm(show) {
 async function saveAndLinkEffect() {
   const name = document.getElementById('new-effect-name')?.value?.trim();
   const description = document.getElementById('new-effect-desc')?.value?.trim();
-  const quality = document.getElementById('new-effect-quality')?.value;
+  const mood = document.getElementById('new-effect-mood')?.value;
 
   if (!name) { state.errorMsg = 'Effect name is required.'; render(); return; }
 
-  const created = await api.post('/api/effects', { name, description, quality });
+  const created = await api.post('/api/effects', { name, description, mood });
   if (created.error) { state.errorMsg = created.error; render(); return; }
 
   const teaId = state.selectedItem.ID;

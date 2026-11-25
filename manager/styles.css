@@ -220,11 +220,16 @@ header h1 {
   font-weight: 500;
 }
 
-.quality-positive { background: #e8f5e9; color: #2e7d32; }
-.quality-negative { background: #fce4ec; color: #c62828; }
-.quality-neutral  { background: #e3f2fd; color: #1565c0; }
+/* The five values of effect.mood. These replace the old .quality-* trio, which styled a
+   field no effect ever had. Hues follow the chip palette in backend/public/shared.css so
+   the manager and the public UI agree about what "calming" looks like. */
+.mood-stimulating { background: #fff3e0; color: #e65100; }
+.mood-calming     { background: #e3f2fd; color: #1565c0; }
+.mood-protective  { background: #e8f5e9; color: #2e7d32; }
+.mood-supportive  { background: #ede7f6; color: #4527a0; }
+.mood-caution     { background: #fce4ec; color: #c62828; }
 
-.quality-badge {
+.mood-badge {
   display: inline-block;
   padding: 0.1rem 0.45rem;
   border-radius: 10px;

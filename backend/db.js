@@ -6,7 +6,7 @@ const PGPORT = Number(process.env.PGPORT || 40021);
 const PGDATABASE = process.env.PGDATABASE || 'herbblender';
 
 function makePool(user, password) {
-  return new Pool({
+  const pool = new Pool({
     host: PGHOST,
     port: PGPORT,
     database: PGDATABASE,
@@ -15,7 +15,18 @@ function makePool(user, password) {
     max: 10,
     connectionTimeoutMillis: 5000,
     idleTimeoutMillis: 30000
-  })
+  });
+
+  // pg emits 'error' on the Pool when a client that is sitting IDLE fails -- the server
+  // restarts, the network drops, a timeout fires server-side. That is an EventEmitter
+  // 'error' with no listener, which Node turns into an uncaught exception and kills the
+  // process. The query paths have their own try/catch; this is only about the idle ones.
+  // The pool evicts the dead client by itself, so logging is the whole job.
+  pool.on('error', err => {
+    console.error(`pg pool (${user}): idle client error -`, err.message);
+  });
+
+  return pool;
 }
 
 let readPool = null;

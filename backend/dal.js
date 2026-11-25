@@ -42,8 +42,12 @@ function scanImages() {
 
 scanImages();
 
-// Call after anything writes into backend/images/: addHerb's mkdirSync below, and the
-// GBIF download in index.js.
+// Call after anything changes what the index should hold: addHerb's mkdirSync below, the
+// GBIF download in index.js, and any rename -- image_slug is generated from the name, so
+// updateTea and updateHerb move the lookup key even though no file moves.
+//
+// Note what this does NOT cover: images dropped into backend/images/ by hand are invisible
+// until the process restarts.
 function refreshImages() { scanImages(); }
 
 function firstImage(subdir, slug) {
@@ -81,11 +85,17 @@ function normTea(r) {
   };
 }
 
+// effect.mood retires the fourth string contract. It was EFFECT_MOOD_MAP, duplicated by
+// hand in frontend/src/app/app.ts and teaBrowser/app.js, where an effect the author
+// forgot to list rendered as "supportive" and nothing anywhere said so. The database
+// now answers the question, and both frontends keep their map only as a fallback for an
+// older backend. The five legal moods are in the CHECK on effect.mood.
 function normEffect(r) {
   return {
     ID:          r.id,
     NAME:        r.name,
     DESCRIPTION: r.description,
+    MOOD:        r.mood,
     // Deliberately undefined, not null. No effect document ever had a field,
     // so JSON.stringify dropped the key and the wire format has never carried it.
     // Selecting a NULL column here would emit "QUALITY": null -- a real diff. The key
@@ -136,6 +146,21 @@ function normPlant(r) {
 // compound grouping for 22 rows.
 const TYPE_TO_API = { alkaloid: 'alkaloid', polyphenol: 'polyphenol', terpene: 'terpene', other: 'otherCompound' };
 const TYPE_TO_DB  = { alkaloid: 'alkaloid', polyphenol: 'polyphenol', terpene: 'terpene', otherCompound: 'other' };
+
+// compound.psychoactivity is a foreign key into the psychoactivity lookup, so an
+// unknown value is a 23503 from deep inside the insert. Checking here turns that into a
+// sentence the manager can put in its error banner. The manager used to post booleans
+// into this column; Mongo stored them, and the three live values were 'yes'/'no'/'mild'
+// all along.
+const PSYCHOACTIVITY = new Set(['no', 'mild', 'yes']);
+
+function normPsychoactivity(v) {
+  if (v === undefined || v === null || v === '') return null;
+  if (!PSYCHOACTIVITY.has(v)) {
+    throw new Error(`Unknown psychoactivity "${v}" - expected one of: no, mild, yes`);
+  }
+  return v;
+}
 
 function normCompound(r) {
   return {
@@ -204,8 +229,12 @@ async function getTeaById(id) {
 // genus and species as free text rather than offering a plant to pick. Unlike Mongo it
 // cannot half-succeed: no match means no plant_id, tea.plant_id is NOT NULL, and the
 // insert is refused rather than producing an orphan.
-async function resolvePlantId(genus, species) {
-  const { rows } = await db().query(
+//
+// Takes the client for the same reason ensureTaxon does: this read decides what the
+// following write stores, so it has to see the same snapshot and share its fate. On the
+// read pool it was a different role, a different session and a different transaction.
+async function resolvePlantId(c, genus, species) {
+  const { rows } = await c.query(
     `SELECT p.plant_id
      FROM   plant p
      JOIN   taxon sp ON sp.taxon_id = p.taxon_id
@@ -219,35 +248,41 @@ async function resolvePlantId(genus, species) {
 
 async function addTea({ name, description, genus, species, family, oxidation, fermentation }) {
   void family;  // derived from the taxon tree now; the form still posts it
-  const plantId = await resolvePlantId(genus, species);
-  const { rows } = await admin().query(
-    `INSERT INTO tea (name, plant_id, description, oxidation, fermentation)
-     VALUES ($1, $2, $3, nullif($4, ''), nullif($5, ''))
-     RETURNING tea_id::text AS id`,
-    [name, plantId, description, oxidation ?? '', fermentation ?? '']
-  );
-  return rows[0].id;
+  return inTransaction(async c => {
+    const plantId = await resolvePlantId(c, genus, species);
+    const { rows } = await c.query(
+      `INSERT INTO tea (name, plant_id, description, oxidation, fermentation)
+       VALUES ($1, $2, $3, nullif($4, ''), nullif($5, ''))
+       RETURNING tea_id::text AS id`,
+      [name, plantId, description, oxidation ?? '', fermentation ?? '']
+    );
+    return rows[0].id;
+  });
 }
 
 // Builds the SET list from the keys actually supplied. This fixes the partial-PUT bug
 // the Mongo version had: index.js passes all seven keys and $set wrote undefined over
 // anything the caller omitted.
 async function updateTea(id, fields) {
-  const sets = [];
-  const vals = [];
-  const put = (sql, v) => { vals.push(v); sets.push(`${sql} = $${vals.length}`); };
+  await inTransaction(async c => {
+    const sets = [];
+    const vals = [];
+    const put = (sql, v) => { vals.push(v); sets.push(`${sql} = $${vals.length}`); };
 
-  if (fields.name         !== undefined) put('name', fields.name);
-  if (fields.description  !== undefined) put('description', fields.description);
-  if (fields.oxidation    !== undefined) put('oxidation', fields.oxidation || null);
-  if (fields.fermentation !== undefined) put('fermentation', fields.fermentation || null);
-  if (fields.genus !== undefined && fields.species !== undefined) {
-    put('plant_id', await resolvePlantId(fields.genus, fields.species));
-  }
-  if (!sets.length) return;
+    if (fields.name         !== undefined) put('name', fields.name);
+    if (fields.description  !== undefined) put('description', fields.description);
+    if (fields.oxidation    !== undefined) put('oxidation', fields.oxidation || null);
+    if (fields.fermentation !== undefined) put('fermentation', fields.fermentation || null);
+    if (fields.genus !== undefined && fields.species !== undefined) {
+      put('plant_id', await resolvePlantId(c, fields.genus, fields.species));
+    }
+    if (!sets.length) return;
 
-  vals.push(id);
-  await admin().query(`UPDATE tea SET ${sets.join(', ')} WHERE tea_id = $${vals.length}`, vals);
+    vals.push(id);
+    await c.query(`UPDATE tea SET ${sets.join(', ')} WHERE tea_id = $${vals.length}`, vals);
+  });
+  // tea.image_slug is derived from the name, so a rename moves the image lookup key.
+  refreshImages();
 }
 
 async function deleteTea(id) {
@@ -259,7 +294,7 @@ async function deleteTea(id) {
 
 async function getEffectsForTea(teaId) {
   const { rows } = await db().query(
-    `SELECT e.effect_id::text AS id, e.name, e.description
+    `SELECT e.effect_id::text AS id, e.name, e.description, e.mood
      FROM   effect_claim ec
      JOIN   effect e USING (effect_id)
      WHERE  ec.tea_id = $1
@@ -290,7 +325,7 @@ async function getBlend(teaIds) {
   for (const t of teas) t.EFFECTS = [];
 
   const { rows: eff } = await db().query(
-    `SELECT ec.tea_id::text AS tea_id, e.effect_id::text AS id, e.name, e.description
+    `SELECT ec.tea_id::text AS tea_id, e.effect_id::text AS id, e.name, e.description, e.mood
      FROM   effect_claim ec
      JOIN   effect e USING (effect_id)
      WHERE  ec.tea_id = ANY($1::bigint[])
@@ -309,13 +344,28 @@ async function getBlend(teaIds) {
 // ON CONFLICT has to name the predicate as well as the columns, because the index it
 // infers is partial. effect_claim_tea_unsourced_unique exists precisely because a plain
 // UNIQUE constraint cannot constrain the NULL side -- and source_id is NULL here.
+//
+// The predicate has to be the index's WHOLE predicate, not just the interesting half.
+// Arbiter inference asks whether this WHERE *implies* the index's, and `source_id IS
+// NULL` alone does not imply `tea_id IS NOT NULL`, so the shorter version matched no
+// index at all and raised 42P10 on every call -- at plan time, so no amount of data
+// would have made it work.
+//
+// The insert is a SELECT so that an effect name with no row simply inserts nothing.
+// rowCount distinguishes that from "already linked", which the caller needs, because
+// silently succeeding on a misspelt effect is the class of bug this migration ends.
 async function linkEffectToTea(teaId, effectName) {
-  await admin().query(
+  const { rowCount } = await admin().query(
     `INSERT INTO effect_claim (tea_id, effect_id, source_id, confidence)
      SELECT $1, e.effect_id, NULL, 'unrated' FROM effect e WHERE e.name = $2
-     ON CONFLICT (tea_id, effect_id) WHERE source_id IS NULL DO NOTHING`,
+     ON CONFLICT (tea_id, effect_id) WHERE tea_id IS NOT NULL AND source_id IS NULL
+     DO NOTHING`,
     [teaId, effectName]
   );
+  if (rowCount === 0) {
+    const { rows } = await db().query('SELECT 1 FROM effect WHERE name = $1', [effectName]);
+    if (!rows[0]) throw new Error(`No effect named "${effectName}"`);
+  }
 }
 
 async function unlinkEffectFromTea(teaId, effectName) {
@@ -374,35 +424,47 @@ async function getHerbById(id) {
 // parent to attach to. Rather than inserting a second root and quietly breaking the
 // single-tree invariant, this refuses and says what to do. New families are rare and
 // deliberate; silent tree corruption is what this migration exists to end.
-async function ensureTaxon(family, genus, species) {
+//
+// Takes the client rather than opening one, so the caller can put the taxon rows and the
+// plant row in the SAME transaction. When it opened its own and committed, a plant insert
+// that then failed on the UNIQUE name left a freshly created genus and species behind
+// with nothing pointing at them -- a half-applied write, which is the thing the migration
+// is supposed to have made impossible.
+async function ensureTaxon(c, family, genus, species) {
+  const { rows: fam } = await c.query(
+    `SELECT taxon_id FROM taxon WHERE botanical_rank = 'family' AND name = $1`, [family]);
+  if (!fam[0]) {
+    throw new Error(
+      `Family "${family}" is not in taxon. Add it under its order first ` +
+      `(see study/004_session5.sql), then retry.`);
+  }
+
+  // DO UPDATE rather than DO NOTHING, because DO NOTHING returns no row and there
+  // would be nothing to RETURNING. Setting name to itself is the idiomatic no-op.
+  const { rows: gen } = await c.query(
+    `INSERT INTO taxon (parent_id, botanical_rank, name) VALUES ($1, 'genus', $2)
+     ON CONFLICT (parent_id, name) DO UPDATE SET name = excluded.name
+     RETURNING taxon_id`, [fam[0].taxon_id, genus]);
+
+  const { rows: sp } = await c.query(
+    `INSERT INTO taxon (parent_id, botanical_rank, name) VALUES ($1, 'species', $2)
+     ON CONFLICT (parent_id, name) DO UPDATE SET name = excluded.name
+     RETURNING taxon_id`, [gen[0].taxon_id, species]);
+
+  return sp[0].taxon_id;
+}
+
+// One transaction per write, so ensureTaxon's new rows and the plant row commit or roll
+// back together.
+async function inTransaction(fn) {
   const c = await admin().connect();
   try {
     await c.query('BEGIN');
-
-    const { rows: fam } = await c.query(
-      `SELECT taxon_id FROM taxon WHERE botanical_rank = 'family' AND name = $1`, [family]);
-    if (!fam[0]) {
-      throw new Error(
-        `Family "${family}" is not in taxon. Add it under its order first ` +
-        `(see study/004_session5.sql), then retry.`);
-    }
-
-    // DO UPDATE rather than DO NOTHING, because DO NOTHING returns no row and there
-    // would be nothing to RETURNING. Setting name to itself is the idiomatic no-op.
-    const { rows: gen } = await c.query(
-      `INSERT INTO taxon (parent_id, botanical_rank, name) VALUES ($1, 'genus', $2)
-       ON CONFLICT (parent_id, name) DO UPDATE SET name = excluded.name
-       RETURNING taxon_id`, [fam[0].taxon_id, genus]);
-
-    const { rows: sp } = await c.query(
-      `INSERT INTO taxon (parent_id, botanical_rank, name) VALUES ($1, 'species', $2)
-       ON CONFLICT (parent_id, name) DO UPDATE SET name = excluded.name
-       RETURNING taxon_id`, [gen[0].taxon_id, species]);
-
+    const result = await fn(c);
     await c.query('COMMIT');
-    return sp[0].taxon_id;
+    return result;
   } catch (err) {
-    await c.query('ROLLBACK');
+    await c.query('ROLLBACK').catch(() => {});
     throw err;
   } finally {
     c.release();
@@ -410,38 +472,46 @@ async function ensureTaxon(family, genus, species) {
 }
 
 async function addHerb({ name, genus, species, family, description, nativeRange, otherNames }) {
-  const taxonId = await ensureTaxon(family, genus, species);
-  const { rows } = await admin().query(
-    `INSERT INTO plant (name, taxon_id, description, other_names, native_range)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING plant_id::text AS id, image_slug`,
-    [name, taxonId, description, otherNames || [], nativeRange || []]
-  );
+  const row = await inTransaction(async c => {
+    const taxonId = await ensureTaxon(c, family, genus, species);
+    const { rows } = await c.query(
+      `INSERT INTO plant (name, taxon_id, description, other_names, native_range)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING plant_id::text AS id, image_slug`,
+      [name, taxonId, description, otherNames || [], nativeRange || []]
+    );
+    return rows[0];
+  });
   // image_slug comes back from the database rather than being recomputed here, so the
-  // directory and the lookup key cannot disagree.
-  fs.mkdirSync(path.join(IMAGES_DIR, 'plants', rows[0].image_slug), { recursive: true });
+  // directory and the lookup key cannot disagree. Done after COMMIT: a directory created
+  // for a plant the transaction then rolled back would be a stray entry in the image
+  // index forever, and mkdir is the one part of this that cannot be rolled back.
+  fs.mkdirSync(path.join(IMAGES_DIR, 'plants', row.image_slug), { recursive: true });
   refreshImages();
-  return rows[0].id;
+  return row.id;
 }
 
 async function updateHerb(id, fields) {
-  const sets = [];
-  const vals = [];
-  const put = (sql, v) => { vals.push(v); sets.push(`${sql} = $${vals.length}`); };
+  await inTransaction(async c => {
+    const sets = [];
+    const vals = [];
+    const put = (sql, v) => { vals.push(v); sets.push(`${sql} = $${vals.length}`); };
 
-  if (fields.name         !== undefined) put('name', fields.name);
-  if (fields.description  !== undefined) put('description', fields.description);
-  if (fields.otherNames   !== undefined) put('other_names', fields.otherNames || []);
-  if (fields.nativeRange  !== undefined) put('native_range', fields.nativeRange || []);
-  if (fields.commonNames  !== undefined) put('common_names', fields.commonNames || []);
-  if (fields.currentRange !== undefined) put('current_range', fields.currentRange || []);
-  if (fields.family !== undefined && fields.genus !== undefined && fields.species !== undefined) {
-    put('taxon_id', await ensureTaxon(fields.family, fields.genus, fields.species));
-  }
-  if (!sets.length) return;
+    if (fields.name         !== undefined) put('name', fields.name);
+    if (fields.description  !== undefined) put('description', fields.description);
+    if (fields.otherNames   !== undefined) put('other_names', fields.otherNames || []);
+    if (fields.nativeRange  !== undefined) put('native_range', fields.nativeRange || []);
+    if (fields.commonNames  !== undefined) put('common_names', fields.commonNames || []);
+    if (fields.currentRange !== undefined) put('current_range', fields.currentRange || []);
+    if (fields.family !== undefined && fields.genus !== undefined && fields.species !== undefined) {
+      put('taxon_id', await ensureTaxon(c, fields.family, fields.genus, fields.species));
+    }
+    if (!sets.length) return;
 
-  vals.push(id);
-  await admin().query(`UPDATE plant SET ${sets.join(', ')} WHERE plant_id = $${vals.length}`, vals);
+    vals.push(id);
+    await c.query(`UPDATE plant SET ${sets.join(', ')} WHERE plant_id = $${vals.length}`, vals);
+  });
+  // The name may have changed, which changes image_slug, which changes the index key.
   refreshImages();
 }
 
@@ -470,7 +540,16 @@ async function getTeasByHerb(herbId) {
 // ran a nested filter/some in JavaScript, O(n*m), hunting for corruption the schema now
 // makes unrepresentable. A foreign key does not only stop bad data; it deletes the code
 // that looks for it.
-const ORPHAN_TEA_SELECT = TEA_SELECT.replace('JOIN   plant p', 'LEFT   JOIN plant p');
+//
+// The string replace has to reach the taxon joins too. Making only `plant` outer still
+// left `JOIN taxon sp ON sp.taxon_id = p.taxon_id` inner, which discards every row with
+// a NULL plant before `WHERE p.plant_id IS NULL` is ever evaluated -- so the query
+// returned the right answer for a reason that had nothing to do with the data.
+const ORPHAN_TEA_SELECT = TEA_SELECT
+  .replace('JOIN   plant p', 'LEFT   JOIN plant p')
+  .replace('JOIN   taxon sp', 'LEFT   JOIN taxon sp')
+  .replace('JOIN   taxon g', 'LEFT   JOIN taxon g')
+  .replace('JOIN   taxon f', 'LEFT   JOIN taxon f');
 
 async function getTeasWithoutHerb() {
   const { rows } = await db().query(`${ORPHAN_TEA_SELECT} WHERE p.plant_id IS NULL`);
@@ -479,7 +558,7 @@ async function getTeasWithoutHerb() {
 
 // ── Effects (standalone CRUD) ─────────────────────────────────────────────────
 
-const EFFECT_SELECT = 'SELECT effect_id::text AS id, name, description FROM effect';
+const EFFECT_SELECT = 'SELECT effect_id::text AS id, name, description, mood FROM effect';
 
 async function getEffects() {
   // COLLATE "C" gives byte order, which is what Mongo's sort({name: 1}) did. The
@@ -494,13 +573,29 @@ async function getEffectById(id) {
   return rows[0] ? normEffect(rows[0]) : null;
 }
 
-async function addEffect({ name, description, quality }) {
-  //  is accepted and discarded. No effect ever had one, nothing reads QUALITY,
-  // and the column does not exist -- but the manager form still posts the field.
-  void quality;
+// effect.mood's CHECK constraint, mirrored so a bad value is a sentence rather than a
+// 23514 from inside the insert. If the CHECK gains a value, this has to gain it too --
+// which is the usual cost of restating a constraint in two places, accepted here only
+// because the manager needs the list to build its dropdown anyway.
+const MOODS = new Set(['calming', 'stimulating', 'protective', 'supportive', 'caution']);
+
+function normMood(v) {
+  if (v === undefined || v === null || v === '') return null;
+  if (!MOODS.has(v)) {
+    throw new Error(`Unknown mood "${v}" - expected one of: ${[...MOODS].join(', ')}`);
+  }
+  return v;
+}
+
+async function addEffect({ name, description, mood }) {
+  // The column is NOT NULL DEFAULT 'supportive', so an omitted mood takes the default
+  // rather than being written as NULL.
+  const m = normMood(mood);
   const { rows } = await admin().query(
-    `INSERT INTO effect (name, description) VALUES ($1, $2) RETURNING effect_id::text AS id`,
-    [name, description]
+    `INSERT INTO effect (name, description, mood)
+     VALUES ($1, $2, coalesce($3, 'supportive'))
+     RETURNING effect_id::text AS id`,
+    [name, description, m]
   );
   return rows[0].id;
 }
@@ -512,6 +607,8 @@ async function updateEffect(id, fields) {
 
   if (fields.name        !== undefined) put('name', fields.name);
   if (fields.description !== undefined) put('description', fields.description);
+  // mood is NOT NULL, so a cleared dropdown means "back to the default", not NULL.
+  if (fields.mood        !== undefined) put('mood', normMood(fields.mood) ?? 'supportive');
   if (!sets.length) return;
 
   vals.push(id);
@@ -571,7 +668,8 @@ async function setCompoundEffects(c, compoundId, names) {
     `INSERT INTO effect_claim (compound_id, effect_id, source_id, confidence)
      SELECT $1, e.effect_id, NULL, 'unrated'
      FROM   effect e WHERE e.name = ANY($2::text[])
-     ON CONFLICT (compound_id, effect_id) WHERE source_id IS NULL DO NOTHING`,
+     ON CONFLICT (compound_id, effect_id)
+     WHERE compound_id IS NOT NULL AND source_id IS NULL DO NOTHING`,
     [compoundId, names]
   );
 }
@@ -580,30 +678,19 @@ async function addCompound({ type, name, wikilink, psychoactive, effects }) {
   const dbType = TYPE_TO_DB[type];
   if (!dbType) throw new Error(`Unknown compound type: ${type}`);
 
-  const c = await admin().connect();
-  try {
-    await c.query('BEGIN');
+  return inTransaction(async c => {
     const { rows } = await c.query(
       `INSERT INTO compound (name, compound_type, psychoactivity, wikilink)
        VALUES ($1, $2, $3, $4) RETURNING compound_id::text AS id`,
-      [name, dbType, psychoactive ?? null, wikilink || null]
+      [name, dbType, normPsychoactivity(psychoactive), wikilink || null]
     );
     await setCompoundEffects(c, rows[0].id, effects || []);
-    await c.query('COMMIT');
     return rows[0].id;
-  } catch (err) {
-    await c.query('ROLLBACK');
-    throw err;
-  } finally {
-    c.release();
-  }
+  });
 }
 
 async function updateCompound(id, { type, name, wikilink, psychoactive, effects }) {
-  const c = await admin().connect();
-  try {
-    await c.query('BEGIN');
-
+  await inTransaction(async c => {
     const sets = [];
     const vals = [];
     const put = (sql, v) => { vals.push(v); sets.push(`${sql} = $${vals.length}`); };
@@ -617,21 +704,14 @@ async function updateCompound(id, { type, name, wikilink, psychoactive, effects 
       put('compound_type', dbType);
     }
     if (wikilink     !== undefined) put('wikilink', wikilink || null);
-    if (psychoactive !== undefined) put('psychoactivity', psychoactive ?? null);
+    if (psychoactive !== undefined) put('psychoactivity', normPsychoactivity(psychoactive));
 
     if (sets.length) {
       vals.push(id);
       await c.query(`UPDATE compound SET ${sets.join(', ')} WHERE compound_id = $${vals.length}`, vals);
     }
     if (effects !== undefined) await setCompoundEffects(c, id, effects || []);
-
-    await c.query('COMMIT');
-  } catch (err) {
-    await c.query('ROLLBACK');
-    throw err;
-  } finally {
-    c.release();
-  }
+  });
 }
 
 async function deleteCompound(id) {

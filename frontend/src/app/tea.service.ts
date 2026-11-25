@@ -6,7 +6,14 @@ export interface Effect {
   ID: string;
   NAME: string;
   DESCRIPTION: string;
-  QUALITY: string;
+  // One of the effect.mood values: stimulating | calming | protective | supportive |
+  // caution. Optional because an older backend does not send it and moodClass falls
+  // back to its local name map.
+  MOOD?: string;
+  // Never populated. No effect ever carried a quality and there is no such column;
+  // the key is typed optional so the compiler stops promising a string that is
+  // always undefined.
+  QUALITY?: string;
 }
 
 export interface Tea {

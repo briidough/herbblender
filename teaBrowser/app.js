@@ -33,7 +33,25 @@ const EFFECT_MOOD_MAP = {
   'Astringent':                'effect-supportive',
 };
 
+// effect.mood's five legal values, mapped onto the four chip styles in shared.css.
+// 'stimulating' is the database's name for what the stylesheet calls energizing, and
+// 'caution' has no style of its own yet.
+const MOOD_TO_CLASS = {
+  stimulating: 'effect-energizing',
+  calming:     'effect-calming',
+  protective:  'effect-protective',
+  supportive:  'effect-supportive',
+  caution:     'effect-supportive',
+};
+
+// Chips here are drawn from tea.EFFECT_NAMES, which is an array of names with no mood
+// attached, so the mood is looked up by name in whatever /api/effects returned. That is
+// still a name match, but it is a match against the same table the name came from
+// rather than against a constant someone has to remember to edit -- which is what
+// EFFECT_MOOD_MAP was. The map stays as the fallback for a backend without MOOD.
 function moodClass(name) {
+  const mood = state.effectMoods?.get(name);
+  if (mood) return MOOD_TO_CLASS[mood] || 'effect-supportive';
   return EFFECT_MOOD_MAP[name] || 'effect-supportive';
 }
 
@@ -43,6 +61,7 @@ const state = {
   teas:      null,
   herbs:     null,
   compounds: null,
+  effectMoods: null,   // Map<effect name, mood>, built by loadTeas
 };
 
 // ── Panel navigation ──────────────────────────────────────────────────────────
@@ -72,7 +91,22 @@ async function loadTeas() {
   if (state.teas) return state.teas;
   state.teas = await fetchJSON('/api/teas');
   state.teas.sort((a, b) => a.NAME.localeCompare(b.NAME));
+  await loadEffectMoods();
   return state.teas;
+}
+
+// One extra request for the whole page, and only to colour chips, so a failure here
+// must not take the tea list down with it -- moodClass falls back to EFFECT_MOOD_MAP
+// when the map is absent, which is exactly the old behaviour.
+async function loadEffectMoods() {
+  if (state.effectMoods) return state.effectMoods;
+  try {
+    const effects = await fetchJSON('/api/effects');
+    state.effectMoods = new Map(effects.filter(e => e.MOOD).map(e => [e.NAME, e.MOOD]));
+  } catch {
+    state.effectMoods = new Map();
+  }
+  return state.effectMoods;
 }
 
 async function loadHerbs() {

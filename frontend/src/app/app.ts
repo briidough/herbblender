@@ -43,6 +43,16 @@ const EFFECT_MOOD_MAP: Record<string, string> = {
   'Feline Attractant':        'effect-supportive',
 };
 
+// effect.mood's five legal values, mapped onto the four chip styles in shared.css.
+// 'stimulating' is the database's name for what the stylesheet calls energizing.
+const MOOD_TO_CLASS: Record<string, string> = {
+  stimulating: 'effect-energizing',
+  calming:     'effect-calming',
+  protective:  'effect-protective',
+  supportive:  'effect-supportive',
+  caution:     'effect-supportive',
+};
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule],
@@ -105,7 +115,7 @@ export class App implements OnInit {
       { mood: 'effect-supportive', label: 'Supportive', effects: [] },
     ];
     for (const eff of b.effects) {
-      const grp = groups.find(g => g.mood === this.moodClass(eff.NAME)) ?? groups[3];
+      const grp = groups.find(g => g.mood === this.moodClass(eff)) ?? groups[3];
       grp.effects.push(eff);
     }
     for (const grp of groups) {
@@ -212,7 +222,16 @@ export class App implements OnInit {
     return '';
   }
 
-  moodClass(name: string): string {
+  // The API now carries MOOD, read from effect.mood, so an effect nobody remembered to
+  // add to EFFECT_MOOD_MAP no longer renders as "supportive" in silence. The map stays
+  // as a fallback for an effect served without a mood.
+  //
+  // 'caution' is in the column's CHECK but has no chip style and no group yet, and no
+  // effect currently uses it; it lands in supportive until one does.
+  moodClass(effect: Effect | string): string {
+    const mood = typeof effect === 'string' ? null : effect.MOOD;
+    if (mood) return MOOD_TO_CLASS[mood] ?? 'effect-supportive';
+    const name = typeof effect === 'string' ? effect : effect.NAME;
     return EFFECT_MOOD_MAP[name] ?? 'effect-supportive';
   }
 }

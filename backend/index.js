@@ -1,4 +1,3 @@
-require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
@@ -132,6 +131,19 @@ app.post('/api/gbif/fetch-images', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// ── Id validation ─────────────────────────────────────────────────────────────
+// Every id in this API is now a bigint. Handing Postgres 'abc' raises 22P02, which the
+// catch blocks below turn into a 500 with a raw driver string -- the same flaw the Mongo
+// version had with ObjectId, carried over by the migration. A 404 is the honest answer:
+// a non-numeric id cannot name a row, so the row is not found.
+// app.param fires for every route carrying :id, so this is one registration rather than
+// a guard repeated on fourteen handlers -- and a route added later is covered by default
+// instead of by remembering.
+app.param('id', (req, res, next, id) => {
+  if (!/^\d+$/.test(id)) return res.status(404).json({ error: 'Not found' });
+  next();
 });
 
 // ── Herbs (read) ──────────────────────────────────────────────────────────────
@@ -301,6 +313,11 @@ app.get('/api/blend', async (req, res) => {
   try {
     const ids = (req.query.ids || '').split(',').filter(Boolean).slice(0, 3);
     if (ids.length === 0) return res.status(400).json({ error: 'Provide up to 3 tea IDs via ?ids=id1,id2,id3' });
+    // ANY($1::bigint[]) raises 22P02 on a non-numeric element, so this is a 400 rather
+    // than a 500 carrying a driver message.
+    if (!ids.every(id => /^\d+$/.test(id))) {
+      return res.status(400).json({ error: 'Tea IDs must be numeric' });
+    }
     const blend = await dal.getBlend(ids);
     res.json(blend);
   } catch (err) {
@@ -331,8 +348,8 @@ app.get('/api/effects/:id', async (req, res) => {
 
 app.post('/api/effects', async (req, res) => {
   try {
-    const { name, description, quality } = req.body;
-    const id = await dal.addEffect({ name, description, quality });
+    const { name, description, mood } = req.body;
+    const id = await dal.addEffect({ name, description, mood });
     res.status(201).json({ id });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -341,8 +358,8 @@ app.post('/api/effects', async (req, res) => {
 
 app.put('/api/effects/:id', async (req, res) => {
   try {
-    const { name, description, quality } = req.body;
-    await dal.updateEffect(req.params.id, { name, description, quality });
+    const { name, description, mood } = req.body;
+    await dal.updateEffect(req.params.id, { name, description, mood });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

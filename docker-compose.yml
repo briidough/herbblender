@@ -4,7 +4,18 @@ services:
     ports:
       - "3000:3000"
     env_file:
+      # Local-dev only. The wtb stack has no .env files -- secrets there come from
+      # wtb.env via ${VAR} interpolation -- so the production compose must set
+      # DB_PASSWORD (and ADMIN_DB_PASSWORD, only if that deployment should be able to
+      # write) that way instead.
       - ./backend/.env
+    environment:
+      # Stated rather than left to the defaults in backend/db.js, so the deployment
+      # describes its own database. No dns: override is needed any more: that pin
+      # existed for Mongo Atlas's SRV lookup, and this is a LAN host.
+      - PGHOST=192.168.1.227
+      - PGPORT=40021
+      - PGDATABASE=herbblender
     networks:
       - herbnet
 
