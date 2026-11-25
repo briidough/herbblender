@@ -415,8 +415,8 @@ connect().then(() => {
   const server = app.listen(PORT, '0.0.0.0', () =>
     console.log(`HerbBlender backend running on port ${PORT}`));
 
-  // Docker stops containers with SIGTERM. Without this the pool is left open and Atlas has
-  // to reap the connections itself.
+  // Docker stops containers with SIGTERM. Without this the pools are left open and Postgres
+  // has to reap the connections itself.
   for (const signal of ['SIGTERM', 'SIGINT']) {
     process.on(signal, () => {
       console.log(`${signal} received, shutting down`);
@@ -427,6 +427,6 @@ connect().then(() => {
     });
   }
 }).catch(err => {
-  console.error('Failed to connect to MongoDB:', err.message);
+  console.error('Failed to connect to PostgreSQL:', err.message);
   process.exit(1);
 });
