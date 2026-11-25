@@ -16,8 +16,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const IMAGES_DIR = path.join(__dirname, 'images');
 
+// Must stay identical to the image_slug generated column on plant and tea, or this
+// writes images into a directory the reader never looks in. The two JS slugify()s
+// already disagreed once (dal.js stripped only the first apostrophe); the database now
+// owns the definition and this is a mirror of it, including the <> doubt marker.
+//
+// The order matters: strip '<>' before spaces. 'Black Elder <>' -> 'Black Elder ' ->
+// 'blackelder'. Strip spaces first and you get 'blackelder<>' back.
 function slugify(name) {
-  return name.toLowerCase().replace(/\s+/g, '').replace(/'/g, '');
+  return name.toLowerCase().replace(/<>/g, '').replace(/\s+/g, '').replace(/'/g, '');
 }
 
 function extFromContentType(ct) {
@@ -116,6 +123,10 @@ app.post('/api/gbif/fetch-images', async (req, res) => {
         // skip failed downloads
       }
     }
+
+    // The DAL caches one directory listing at startup instead of calling readdirSync
+    // per row, so anything that writes into backend/images/ has to say so.
+    if (saved.length) dal.refreshImages();
 
     res.json({ saved });
   } catch (err) {
